@@ -1,19 +1,23 @@
-import sqlite3
 import os
+import psycopg2
+from sqlalchemy import create_engine, text
 
 def init_db():
-    """Initialize the SQLite database with the required tables if they don't exist."""
-    # Create the database directory if it doesn't exist
-    os.makedirs('database/data', exist_ok=True)
+    """Initialize the PostgreSQL database with the required tables if they don't exist."""
+    # Get PostgreSQL connection string from environment variables
+    db_url = os.environ.get('DATABASE_URL')
     
-    # Connect to the database (this will create it if it doesn't exist)
-    conn = sqlite3.connect('database/data/ai_governance.db')
+    if not db_url:
+        raise ValueError("DATABASE_URL environment variable not set")
+    
+    # Connect to the database
+    conn = psycopg2.connect(db_url)
     cursor = conn.cursor()
     
     # Create tables
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS policies (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
         description TEXT,
         category TEXT,
@@ -26,7 +30,7 @@ def init_db():
     
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS risk_assessments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
         model_name TEXT,
         risk_score REAL,
@@ -39,7 +43,7 @@ def init_db():
     
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS compliance_monitors (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT,
         model_or_system TEXT,
@@ -53,7 +57,7 @@ def init_db():
     
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS reports (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
         description TEXT,
         report_type TEXT,
@@ -66,7 +70,7 @@ def init_db():
     
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS activities (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         activity_type TEXT NOT NULL,
         description TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

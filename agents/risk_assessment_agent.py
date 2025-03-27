@@ -2,24 +2,18 @@ import os
 import random
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
-from transformers import pipeline
+from utils.ai_utils import AiUtils
 from database.models import RiskAssessment
 from database.db_utils import create_risk_assessment, get_risk_assessment
 
 class RiskAssessmentAgent:
     def __init__(self):
-        """Initialize the Risk Assessment Agent with NLP capabilities."""
-        # Initialize text classification model for risk assessment
-        self.text_classifier = pipeline(
-            "text-classification",
-            model="distilbert-base-uncased-finetuned-sst-2-english"
-        )
+        """Initialize the Risk Assessment Agent with rule-based AI capabilities."""
+        # Initialize text classification for risk assessment
+        self.text_classifier = AiUtils.initialize_text_classification("risk-classifier")
         
         # Initialize zero-shot classifier for more specific risk categories
-        self.zero_shot_classifier = pipeline(
-            "zero-shot-classification",
-            model="facebook/bart-large-mnli"
-        )
+        self.zero_shot_classifier = AiUtils.initialize_zero_shot_classification("risk-zero-shot")
         
         # Risk categories and descriptions
         self.risk_categories = [
@@ -47,24 +41,15 @@ class RiskAssessmentAgent:
 
     def assess_risk_from_text(self, model_name: str, documentation: str) -> RiskAssessment:
         """Assess the risk of an AI model based on its documentation text."""
-        # Use zero-shot classification to identify risk categories in the documentation
+        # Use our rule-based multi-label classification
         try:
-            category_results = self.zero_shot_classifier(
-                documentation,
-                candidate_labels=self.risk_categories,
-                multi_label=True
+            # Use AiUtils for classification instead of direct model calls
+            main_risks = AiUtils.multi_label_classify(
+                documentation, 
+                self.risk_categories,
+                self.zero_shot_classifier,
+                threshold=0.3
             )
-            
-            # Extract main risk categories (above a threshold)
-            threshold = 0.3
-            main_risks = [
-                (cat, score) for cat, score in 
-                zip(category_results['labels'], category_results['scores']) 
-                if score > threshold
-            ]
-            
-            # Sort by score in descending order
-            main_risks.sort(key=lambda x: x[1], reverse=True)
             
             # Calculate an overall risk score (0-100)
             if len(main_risks) > 0:
@@ -82,13 +67,13 @@ class RiskAssessmentAgent:
             recommendations = self._generate_recommendations(main_risks)
             
         except Exception as e:
-            # Fallback if model fails
+            # Fallback if classification fails
             risk_categories = random.sample(self.risk_categories, 2)
             main_risks = [(cat, random.uniform(0.3, 0.7)) for cat in risk_categories]
             risk_score = sum(score * 100 for _, score in main_risks) / len(main_risks)
             
             findings = f"Analysis failed with error: {str(e)}. Fallback assessment performed.\n"
-            findings += "Potential risks identified: " + ", ".join(risk_categories)
+            findings += "Potential risks identified: " + ", ".join(cat for cat, _ in main_risks)
             
             recommendations = "Due to analysis failure, consider a manual review of the model."
         

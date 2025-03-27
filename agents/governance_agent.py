@@ -2,26 +2,18 @@ import os
 import random
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-from transformers import pipeline
+from utils.ai_utils import AiUtils
 from database.models import Policy
 from database.db_utils import create_policy, update_policy, get_policy
 
 class GovernanceAgent:
     def __init__(self):
-        """Initialize the Governance Agent with NLP capabilities."""
-        # Initialize the text generation model for policy creation
-        self.text_generator = pipeline(
-            "text-generation",
-            model="gpt2",
-            max_length=500,
-            num_return_sequences=1
-        )
+        """Initialize the Governance Agent with rule-based AI capabilities."""
+        # Initialize the text generation for policy creation
+        self.text_generator = AiUtils.initialize_text_generation("governance-policies")
         
-        # Initialize the text classification model for policy categorization
-        self.text_classifier = pipeline(
-            "text-classification",
-            model="distilbert-base-uncased-finetuned-sst-2-english"
-        )
+        # Initialize the text classification for policy categorization
+        self.text_classifier = AiUtils.initialize_text_classification("policy-classifier")
         
         # Define policy templates and categories
         self.policy_categories = [
@@ -58,36 +50,33 @@ class GovernanceAgent:
         # Get the template description for the category
         description = self.policy_templates.get(category, "")
         
-        # Generate policy content using the text generation model
-        prompt = f"Policy for {category} in AI systems:\n\n"
-        try:
-            generated_text = self.text_generator(prompt)[0]['generated_text']
-            # Clean up the generated text, removing the prompt
-            content = generated_text.replace(prompt, "").strip()
-        except Exception as e:
-            # Fallback if model fails
-            content = f"""
-            # {title}
-            
-            ## Purpose
-            This policy establishes guidelines for {category.lower()} in AI systems.
-            
-            ## Scope
-            This policy applies to all AI systems developed or used by the organization.
-            
-            ## Requirements
-            1. All AI systems must be reviewed for {category.lower()} concerns.
-            2. Documentation must include {category.lower()} considerations.
-            3. Regular audits will be conducted to ensure compliance.
-            
-            ## Responsibilities
-            - Data Scientists: Implement technical controls
-            - AI Ethics Board: Review and approve AI systems
-            - Management: Ensure resources for compliance
-            
-            ## Compliance Measurement
-            Compliance will be measured through regular audits and assessments.
-            """
+        # Generate policy content using AiUtils
+        prompt = f"Policy for {category} in AI systems:"
+        fallback_content = f"""
+        # {title}
+        
+        ## Purpose
+        This policy establishes guidelines for {category.lower()} in AI systems.
+        
+        ## Scope
+        This policy applies to all AI systems developed or used by the organization.
+        
+        ## Requirements
+        1. All AI systems must be reviewed for {category.lower()} concerns.
+        2. Documentation must include {category.lower()} considerations.
+        3. Regular audits will be conducted to ensure compliance.
+        
+        ## Responsibilities
+        - Data Scientists: Implement technical controls
+        - AI Ethics Board: Review and approve AI systems
+        - Management: Ensure resources for compliance
+        
+        ## Compliance Measurement
+        Compliance will be measured through regular audits and assessments.
+        """
+        
+        # Use our rule-based text generation through AiUtils
+        content = AiUtils.generate_text(prompt, self.text_generator, fallback_content)
         
         # Create the policy object
         policy = Policy(
