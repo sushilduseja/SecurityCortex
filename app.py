@@ -3,8 +3,8 @@ from flask_cors import CORS
 import os
 import json
 import datetime
-from database.db_init import init_db
-from database.db_utils_postgres import (
+from database.db_init_sqlite import init_db
+from database.db_utils_sqlite import (
     get_all_policies, get_policy, create_policy, update_policy,
     get_all_risk_assessments, get_risk_assessment, create_risk_assessment,
     get_all_compliance_monitors, get_compliance_monitor, create_compliance_monitor, update_compliance_monitor,
@@ -58,7 +58,34 @@ def get_dashboard_metrics():
         active_monitors = sum(1 for m in compliance_monitors 
                             if m.get('status') == 'Active')
         
-        # Structure the response
+        # Calculate deltas based on recent activities (last 7 days vs. previous period)
+        recent_activities = get_recent_activities(100)  # Get more activities to calculate changes
+        
+        # Get timestamp from 7 days ago
+        one_week_ago = (datetime.datetime.now() - datetime.timedelta(days=7)).isoformat()
+        two_weeks_ago = (datetime.datetime.now() - datetime.timedelta(days=14)).isoformat()
+        
+        # Count recent activities by type
+        recent_policy_changes = sum(1 for a in recent_activities 
+                                 if a.get('related_entity_type') == 'policy' 
+                                 and a.get('created_at', '') > one_week_ago)
+        
+        # This is a simplified approach - in a real app we would look at actual changes
+        # in risk scores and compliance values over time
+        risk_assessments_last_week = sum(1 for a in recent_activities 
+                                     if a.get('related_entity_type') == 'risk_assessment'
+                                     and a.get('created_at', '') > one_week_ago)
+        
+        compliance_changes = sum(1 for a in recent_activities 
+                              if a.get('related_entity_type') == 'compliance_monitor'
+                              and a.get('created_at', '') > one_week_ago)
+        
+        monitor_changes = sum(1 for a in recent_activities 
+                           if a.get('related_entity_type') == 'compliance_monitor'
+                           and 'create' in a.get('activity_type', '').lower()
+                           and a.get('created_at', '') > one_week_ago)
+        
+        # Structure the response with real delta values
         metrics = {
             'policy_count': policy_count,
             'avg_risk_score': round(avg_risk_score, 1),
@@ -66,10 +93,10 @@ def get_dashboard_metrics():
             'active_monitors': active_monitors,
             # Add deltas (changes) for each metric
             'deltas': {
-                'policy_count': 2,  # Example delta values
-                'avg_risk_score': 4,
-                'compliance_rate': 2,
-                'active_monitors': 1
+                'policy_count': recent_policy_changes,
+                'avg_risk_score': risk_assessments_last_week,
+                'compliance_rate': compliance_changes,
+                'active_monitors': monitor_changes
             }
         }
         
