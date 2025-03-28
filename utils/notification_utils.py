@@ -1,110 +1,142 @@
 import os
-from typing import Optional
+import logging
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
-def send_sms_notification(to_phone_number: str, message: str) -> dict:
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def send_sms_notification(phone_number, message):
     """
     Send an SMS notification using Twilio.
     
     Args:
-        to_phone_number: The recipient's phone number in E.164 format (+1xxxxxxxxxx)
-        message: The message content to send
+        phone_number (str): The recipient's phone number including country code (e.g., +15551234567)
+        message (str): The message to send
         
     Returns:
-        dict: A dictionary with success status and details
+        dict: Result with status and details
     """
-    # Check if we have the required environment variables
+    # Get Twilio credentials from environment variables
     account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
     auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
-    from_number = os.environ.get("TWILIO_PHONE_NUMBER")
+    twilio_phone = os.environ.get("TWILIO_PHONE_NUMBER")
     
-    if not all([account_sid, auth_token, from_number]):
+    # Check if Twilio credentials are configured
+    if not all([account_sid, auth_token, twilio_phone]):
+        logger.error("Twilio credentials not properly configured")
         return {
-            "success": False, 
-            "error": "Twilio credentials not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER."
+            "success": False,
+            "message": "Twilio credentials not properly configured. Please ensure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER are set."
         }
     
+    # Ensure phone number is properly formatted
+    if not phone_number.startswith('+'):
+        phone_number = f"+{phone_number}"
+    
     try:
-        # Initialize the Twilio client
+        # Initialize Twilio client
         client = Client(account_sid, auth_token)
         
-        # Send the message
-        message_obj = client.messages.create(
+        # Send SMS
+        sms = client.messages.create(
             body=message,
-            from_=from_number,
-            to=to_phone_number
+            from_=twilio_phone,
+            to=phone_number
         )
         
+        logger.info(f"SMS notification sent successfully. SID: {sms.sid}")
         return {
             "success": True,
-            "message_id": message_obj.sid,
-            "status": message_obj.status
+            "message": "SMS notification sent successfully",
+            "sid": sms.sid
         }
         
     except TwilioRestException as e:
+        logger.error(f"Twilio error: {str(e)}")
         return {
             "success": False,
-            "error": f"Twilio error: {str(e)}",
-            "code": e.code
+            "message": f"Failed to send SMS: {str(e)}"
         }
     except Exception as e:
+        logger.error(f"Unexpected error while sending SMS: {str(e)}")
         return {
             "success": False,
-            "error": f"Error sending SMS: {str(e)}"
+            "message": f"An unexpected error occurred: {str(e)}"
         }
 
-def format_compliance_alert_message(monitor_name: str, 
-                                    alert_level: str, 
-                                    current_value: float, 
-                                    threshold: float) -> str:
+
+def format_compliance_alert_message(monitor_data):
     """
-    Format a compliance alert message.
+    Format a compliance alert message for SMS notification.
     
     Args:
-        monitor_name: Name of the compliance monitor
-        alert_level: The alert level (Normal, Warning, Critical)
-        current_value: Current value of the metric
-        threshold: Threshold value
+        monitor_data (dict): Data about the compliance monitor
         
     Returns:
         str: Formatted message
     """
-    return (
-        f"AI Governance Alert: {monitor_name}\n"
-        f"Alert Level: {alert_level}\n"
+    alert_level = monitor_data.get('alert_level', 'Unknown')
+    monitor_name = monitor_data.get('name', 'Unknown Monitor')
+    model = monitor_data.get('model_or_system', 'Unknown System')
+    current_value = monitor_data.get('current_value', 0.0)
+    threshold = monitor_data.get('threshold_value', 0.0)
+    
+    # Create message based on alert level
+    if alert_level == 'Critical':
+        urgency = "CRITICAL ALERT"
+    elif alert_level == 'Warning':
+        urgency = "WARNING"
+    else:
+        urgency = "NOTIFICATION"
+        
+    message = (
+        f"{urgency}: AI Governance Dashboard\n\n"
+        f"Monitor: {monitor_name}\n"
+        f"System: {model}\n"
         f"Current Value: {current_value}\n"
         f"Threshold: {threshold}\n"
-        f"Please check the AI Governance Dashboard for details."
+        f"Status: {alert_level}\n\n"
+        f"Please review this issue in the AI Governance Dashboard."
     )
+    
+    return message
 
-def format_risk_assessment_message(model_name: str, 
-                                  risk_score: float, 
-                                  status: str) -> str:
+
+def format_risk_assessment_message(assessment_data):
     """
-    Format a risk assessment notification message.
+    Format a risk assessment message for SMS notification.
     
     Args:
-        model_name: Name of the AI model
-        risk_score: The risk score (0-100)
-        status: Assessment status
+        assessment_data (dict): Data about the risk assessment
         
     Returns:
         str: Formatted message
     """
-    risk_level = "Low"
-    if risk_score >= 80:
-        risk_level = "High"
-    elif risk_score >= 60:
-        risk_level = "Medium-High"
-    elif risk_score >= 40:
-        risk_level = "Medium"
-    elif risk_score >= 20:
-        risk_level = "Medium-Low"
+    model_name = assessment_data.get('model_name', 'Unknown Model')
+    risk_score = assessment_data.get('risk_score', 0.0)
     
-    return (
-        f"Risk Assessment Update: {model_name}\n"
-        f"Risk Score: {risk_score} ({risk_level})\n"
-        f"Status: {status}\n"
-        f"Please review the full assessment on the AI Governance Dashboard."
+    # Determine risk level
+    if risk_score >= 75:
+        risk_level = "HIGH RISK"
+    elif risk_score >= 50:
+        risk_level = "MEDIUM RISK"
+    else:
+        risk_level = "LOW RISK"
+    
+    # Format recommendations
+    recommendations = assessment_data.get('recommendations', 'No recommendations provided.')
+    if len(recommendations) > 100:
+        # Truncate long recommendations for SMS
+        recommendations = recommendations[:97] + "..."
+    
+    message = (
+        f"RISK ASSESSMENT: {risk_level}\n\n"
+        f"Model: {model_name}\n"
+        f"Risk Score: {risk_score}\n\n"
+        f"Key Recommendation: {recommendations}\n\n"
+        f"View complete assessment in the AI Governance Dashboard."
     )
+    
+    return message

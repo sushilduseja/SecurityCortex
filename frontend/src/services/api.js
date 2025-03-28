@@ -251,11 +251,14 @@ export const createReport = async (reportData) => {
 // Notification endpoints
 export const sendSmsNotification = async (data) => {
   try {
-    const response = await axios.post('/notifications/sms', data);
+    const response = await axios.post('/send-sms-notification', data);
     return response.data;
   } catch (error) {
     console.error('Error sending SMS notification:', error);
-    return handleApiError(error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || 'Failed to send SMS notification'
+    };
   }
 };
 

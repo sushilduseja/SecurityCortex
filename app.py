@@ -11,10 +11,6 @@ from database.db_utils_sqlite import (
     create_compliance_monitor, update_compliance_monitor, get_all_reports,
     get_report, create_report, get_recent_activities, log_activity)
 from database.models import Policy, RiskAssessment, ComplianceMonitor, Report, Activity
-from utils.notification_utils import (
-    send_sms_notification, format_compliance_alert_message, 
-    format_risk_assessment_message
-)
 
 # Initialize the Flask application
 app = Flask(__name__, static_folder='static')
@@ -493,88 +489,6 @@ def api_create_report():
         return jsonify({'success': True, 'data': {'id': report_id}})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
-
-# SMS Notification endpoints
-@app.route('/api/notifications/sms', methods=['POST'])
-def api_send_sms_notification():
-    """Send an SMS notification"""
-    try:
-        data = request.json
-        
-        # Validate request data
-        if not data.get('phone_number'):
-            return jsonify({
-                'success': False,
-                'error': 'Phone number is required'
-            }), 400
-            
-        if not data.get('message') and not data.get('notification_type'):
-            return jsonify({
-                'success': False,
-                'error': 'Either message or notification_type is required'
-            }), 400
-            
-        phone_number = data.get('phone_number')
-        
-        # If a message is provided directly, use it
-        if data.get('message'):
-            message = data.get('message')
-        
-        # Otherwise, format a message based on the notification type
-        else:
-            notification_type = data.get('notification_type')
-            
-            if notification_type == 'compliance_alert':
-                # Format a compliance alert message
-                monitor_name = data.get('monitor_name', 'Unknown Monitor')
-                alert_level = data.get('alert_level', 'Warning')
-                current_value = data.get('current_value', 0.0)
-                threshold = data.get('threshold', 0.0)
-                
-                message = format_compliance_alert_message(
-                    monitor_name, alert_level, current_value, threshold
-                )
-                
-            elif notification_type == 'risk_assessment':
-                # Format a risk assessment message
-                model_name = data.get('model_name', 'Unknown Model')
-                risk_score = data.get('risk_score', 0.0)
-                status = data.get('status', 'Completed')
-                
-                message = format_risk_assessment_message(
-                    model_name, risk_score, status
-                )
-                
-            else:
-                return jsonify({
-                    'success': False,
-                    'error': f'Unknown notification type: {notification_type}'
-                }), 400
-        
-        # Send the SMS notification
-        result = send_sms_notification(phone_number, message)
-        
-        # Log the notification attempt
-        activity_description = f"SMS notification sent to {phone_number}"
-        if not result['success']:
-            activity_description = f"Failed to send SMS notification: {result['error']}"
-            
-        activity = Activity(
-            activity_type="SMS Notification",
-            description=activity_description,
-            actor="System",
-            related_entity_type=data.get('entity_type', 'notification'),
-            related_entity_id=data.get('entity_id')
-        )
-        log_activity(activity)
-        
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': f'Error sending notification: {str(e)}'
-        }), 500
 
 
 # Run the application

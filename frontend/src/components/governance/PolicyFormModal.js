@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createPolicy } from '../../services/api';
+import Modal from '../common/Modal';
 
 const PolicyFormModal = ({ show, onClose, onPolicyCreated }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,7 +23,7 @@ const PolicyFormModal = ({ show, onClose, onPolicyCreated }) => {
   ];
   
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     
     if (!title.trim() || !category || !description.trim()) {
       setError('Please fill in all required fields');
@@ -82,118 +83,117 @@ const PolicyFormModal = ({ show, onClose, onPolicyCreated }) => {
     setContent(templates[category] || "# Policy Content\n\nEnter detailed policy content here...");
   };
   
-  if (!show) return null;
-  
-  return (
-    <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
-      <div className="modal-dialog modal-lg">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Create Governance Policy</h5>
+  const modalContent = (
+    <>
+      {error && (
+        <div className="alert alert-danger">{error}</div>
+      )}
+      
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label htmlFor="title" className="form-label">Policy Title <span className="text-danger">*</span></label>
+          <input
+            type="text"
+            className="form-control"
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+        </div>
+        
+        <div className="mb-3">
+          <label htmlFor="category" className="form-label">Category <span className="text-danger">*</span></label>
+          <select
+            className="form-select"
+            id="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            required
+          >
+            {policyCategories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="mb-3">
+          <label htmlFor="description" className="form-label">Description <span className="text-danger">*</span></label>
+          <textarea
+            className="form-control"
+            id="description"
+            rows="2"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+          ></textarea>
+        </div>
+        
+        <div className="mb-3">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <label htmlFor="content" className="form-label">Policy Content</label>
             <button 
-              type="button" 
-              className="btn-close" 
-              onClick={onClose}
-              aria-label="Close"
-            ></button>
-          </div>
-          <div className="modal-body">
-            {error && (
-              <div className="alert alert-danger">{error}</div>
-            )}
-            
-            <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label htmlFor="title" className="form-label">Policy Title <span className="text-danger">*</span></label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
-              </div>
-              
-              <div className="mb-3">
-                <label htmlFor="category" className="form-label">Category <span className="text-danger">*</span></label>
-                <select
-                  className="form-select"
-                  id="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  required
-                >
-                  {policyCategories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="mb-3">
-                <label htmlFor="description" className="form-label">Description <span className="text-danger">*</span></label>
-                <textarea
-                  className="form-control"
-                  id="description"
-                  rows="2"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  required
-                ></textarea>
-              </div>
-              
-              <div className="mb-3">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <label htmlFor="content" className="form-label">Policy Content</label>
-                  <button 
-                    type="button"
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={handleGeneratePolicy}
-                  >
-                    <i className="fas fa-magic me-1"></i> Generate with AI
-                  </button>
-                </div>
-                <textarea
-                  className="form-control"
-                  id="content"
-                  rows="12"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                ></textarea>
-                <div className="form-text">
-                  Use Markdown format for rich text formatting
-                </div>
-              </div>
-            </form>
-          </div>
-          <div className="modal-footer">
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
-              onClick={onClose}
+              type="button"
+              className="btn btn-sm btn-outline-primary"
+              onClick={handleGeneratePolicy}
             >
-              Cancel
+              <i className="fas fa-magic me-1"></i> Generate with AI
             </button>
-            <button 
-              type="button" 
-              className="btn btn-primary" 
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Creating...
-                </>
-              ) : (
-                'Create Policy'
-              )}
-            </button>
+          </div>
+          <textarea
+            className="form-control"
+            id="content"
+            rows="12"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          ></textarea>
+          <div className="form-text">
+            Use Markdown format for rich text formatting
           </div>
         </div>
-      </div>
-      <div className="modal-backdrop fade show"></div>
-    </div>
+      </form>
+    </>
+  );
+  
+  const modalActions = (
+    <>
+      <button 
+        type="button" 
+        className="btn btn-secondary" 
+        onClick={onClose}
+      >
+        Cancel
+      </button>
+      <button 
+        type="button" 
+        className="btn btn-primary" 
+        onClick={handleSubmit}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <>
+            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Creating...
+          </>
+        ) : (
+          'Create Policy'
+        )}
+      </button>
+    </>
+  );
+  
+  return (
+    <Modal
+      show={show}
+      onClose={onClose}
+      title="Create Governance Policy"
+      size="lg"
+      actions={modalActions}
+      closeOnBackdropClick={true}
+      closeOnEscape={true}
+    >
+      {modalContent}
+    </Modal>
   );
 };
 
