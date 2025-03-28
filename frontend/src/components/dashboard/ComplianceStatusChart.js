@@ -1,15 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import React, { useEffect, useState, useRef } from 'react';
+import { Doughnut } from 'react-chartjs-2';
+import { 
+  Chart as ChartJS, 
+  ArcElement, 
+  Tooltip, 
+  Legend,
+  LinearScale,
+  Title
+} from 'chart.js';
+import { gsap } from 'gsap';
 import { fetchComplianceStatusChart } from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+// Register required components
+ChartJS.register(
+  ArcElement, 
+  Tooltip, 
+  Legend, 
+  LinearScale,
+  Title
+);
 
 const ComplianceStatusChart = () => {
   const [chartData, setChartData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const chartRef = useRef(null);
+  const chartContainerRef = useRef(null);
 
   useEffect(() => {
     const getChartData = async () => {
@@ -23,10 +40,10 @@ const ComplianceStatusChart = () => {
             {
               data: data.values,
               backgroundColor: [
-                'rgba(46, 204, 113, 0.8)',
-                'rgba(241, 196, 15, 0.8)',
-                'rgba(231, 76, 60, 0.8)',
-                'rgba(52, 152, 219, 0.8)',
+                'rgba(46, 204, 113, 0.85)',  // Green - Compliant
+                'rgba(241, 196, 15, 0.85)',  // Yellow - Partially Compliant
+                'rgba(231, 76, 60, 0.85)',   // Red - Non-compliant
+                'rgba(52, 152, 219, 0.85)',  // Blue - Under Review
               ],
               borderColor: [
                 'rgba(46, 204, 113, 1)',
@@ -34,7 +51,9 @@ const ComplianceStatusChart = () => {
                 'rgba(231, 76, 60, 1)',
                 'rgba(52, 152, 219, 1)',
               ],
-              borderWidth: 1,
+              borderWidth: 2,
+              hoverBorderWidth: 4,
+              hoverOffset: 10,
             },
           ],
         });
@@ -49,6 +68,22 @@ const ComplianceStatusChart = () => {
 
     getChartData();
   }, []);
+
+  // Animation effect when chart becomes visible
+  useEffect(() => {
+    if (chartContainerRef.current && chartData) {
+      gsap.fromTo(
+        chartContainerRef.current,
+        { opacity: 0, scale: 0.9 },
+        { 
+          opacity: 1, 
+          scale: 1, 
+          duration: 0.7, 
+          ease: "elastic.out(1, 0.75)" 
+        }
+      );
+    }
+  }, [chartData]);
 
   if (isLoading) {
     return <LoadingSpinner size="30px" />;
@@ -66,6 +101,7 @@ const ComplianceStatusChart = () => {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    cutout: '60%',
     plugins: {
       legend: {
         position: 'bottom',
@@ -73,9 +109,18 @@ const ComplianceStatusChart = () => {
           padding: 20,
           usePointStyle: true,
           pointStyle: 'circle',
+          font: {
+            size: 12,
+            weight: 'bold'
+          }
         },
       },
       tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        padding: 12,
+        bodyFont: {
+          size: 14
+        },
         callbacks: {
           label: function(context) {
             const label = context.label || '';
@@ -85,13 +130,90 @@ const ComplianceStatusChart = () => {
             return `${label}: ${value} (${percentage}%)`;
           }
         }
+      },
+      datalabels: {
+        color: '#fff',
+        font: {
+          weight: 'bold',
+          size: 12
+        },
+        formatter: (value, ctx) => {
+          const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          const percentage = Math.round((value / total) * 100);
+          return percentage > 5 ? `${percentage}%` : '';
+        }
       }
     },
+    animation: {
+      animateRotate: true,
+      animateScale: true,
+      duration: 1500,
+      easing: 'easeOutQuart'
+    }
   };
 
+  // Create the center text plugin if not already defined
+  const centerText = {
+    id: 'centerText',
+    beforeDraw: function(chart) {
+      if (chart.config.type === 'doughnut') {
+        // Get ctx and data
+        const ctx = chart.ctx;
+        const data = chart.data.datasets[0].data;
+        const total = data.reduce((a, b) => a + b, 0);
+        
+        // Calculate compliance rate
+        const compliantIndex = chart.data.labels.findIndex(label => 
+          label.toLowerCase().includes('compliant') && !label.toLowerCase().includes('non') && !label.toLowerCase().includes('partially')
+        );
+        
+        const complianceRate = compliantIndex >= 0 
+          ? Math.round((data[compliantIndex] / total) * 100) 
+          : 0;
+          
+        // Draw center text
+        const centerX = chart.getDatasetMeta(0).data[0] ? chart.getDatasetMeta(0).data[0].x : chart.width / 2;
+        const centerY = chart.getDatasetMeta(0).data[0] ? chart.getDatasetMeta(0).data[0].y : chart.height / 2;
+        
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Draw main percentage
+        ctx.font = 'bold 24px Arial';
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillText(`${complianceRate}%`, centerX, centerY - 10);
+        
+        // Draw label
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#7f8c8d';
+        ctx.fillText('Compliance', centerX, centerY + 15);
+        
+        ctx.restore();
+      }
+    }
+  };
+
+  // Register the plugin
+  if (!ChartJS.registry.plugins.get('centerText')) {
+    ChartJS.register({
+      id: 'centerText',
+      ...centerText
+    });
+  }
+  
+  // Add the plugin to our options
+  options.plugins.centerText = {};
+
   return (
-    <div className="chart-container" style={{ height: '300px' }}>
-      {chartData && <Pie data={chartData} options={options} />}
+    <div ref={chartContainerRef} className="chart-container" style={{ height: '300px', position: 'relative' }}>
+      {chartData && (
+        <Doughnut 
+          ref={chartRef}
+          data={chartData} 
+          options={options} 
+        />
+      )}
     </div>
   );
 };
