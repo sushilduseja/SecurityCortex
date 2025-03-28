@@ -22,31 +22,31 @@ const Sidebar = ({ collapsed }) => {
             <h6 className="menu-header text-uppercase fs-7 mb-2 text-white-50">Main</h6>
             <ul className="nav flex-column">
               <li className="nav-item mb-2">
-                <NavLink to="/" className={({ isActive }) => `nav-link py-2 px-3 rounded ${isActive ? 'bg-white bg-opacity-10' : ''}`}>
+                <NavLink to="/" className={({ isActive }) => `nav-link py-2 px-3 rounded text-white ${isActive ? 'bg-primary bg-opacity-75 fw-bold' : 'hover-highlight'}`}>
                   <i className="fas fa-tachometer-alt me-2"></i>
                   <span>Dashboard</span>
                 </NavLink>
               </li>
               <li className="nav-item mb-2">
-                <NavLink to="/governance" className={({ isActive }) => `nav-link py-2 px-3 rounded ${isActive ? 'bg-white bg-opacity-10' : ''}`}>
+                <NavLink to="/governance" className={({ isActive }) => `nav-link py-2 px-3 rounded text-white ${isActive ? 'bg-primary bg-opacity-75 fw-bold' : 'hover-highlight'}`}>
                   <i className="fas fa-sitemap me-2"></i>
                   <span>Governance</span>
                 </NavLink>
               </li>
               <li className="nav-item mb-2">
-                <NavLink to="/risk-assessment" className={({ isActive }) => `nav-link py-2 px-3 rounded ${isActive ? 'bg-white bg-opacity-10' : ''}`}>
+                <NavLink to="/risk-assessment" className={({ isActive }) => `nav-link py-2 px-3 rounded text-white ${isActive ? 'bg-primary bg-opacity-75 fw-bold' : 'hover-highlight'}`}>
                   <i className="fas fa-exclamation-triangle me-2"></i>
                   <span>Risk Assessment</span>
                 </NavLink>
               </li>
               <li className="nav-item mb-2">
-                <NavLink to="/compliance" className={({ isActive }) => `nav-link py-2 px-3 rounded ${isActive ? 'bg-white bg-opacity-10' : ''}`}>
+                <NavLink to="/compliance" className={({ isActive }) => `nav-link py-2 px-3 rounded text-white ${isActive ? 'bg-primary bg-opacity-75 fw-bold' : 'hover-highlight'}`}>
                   <i className="fas fa-check-square me-2"></i>
                   <span>Compliance</span>
                 </NavLink>
               </li>
               <li className="nav-item mb-2">
-                <NavLink to="/reports" className={({ isActive }) => `nav-link py-2 px-3 rounded ${isActive ? 'bg-white bg-opacity-10' : ''}`}>
+                <NavLink to="/reports" className={({ isActive }) => `nav-link py-2 px-3 rounded text-white ${isActive ? 'bg-primary bg-opacity-75 fw-bold' : 'hover-highlight'}`}>
                   <i className="fas fa-chart-bar me-2"></i>
                   <span>Reports</span>
                 </NavLink>
@@ -58,13 +58,13 @@ const Sidebar = ({ collapsed }) => {
             <h6 className="menu-header text-uppercase fs-7 mb-2 text-white-50">Configuration</h6>
             <ul className="nav flex-column">
               <li className="nav-item mb-2">
-                <a href="#" className="nav-link py-2 px-3 rounded">
+                <a href="#" className="nav-link py-2 px-3 rounded text-white hover-highlight">
                   <i className="fas fa-cog me-2"></i>
                   <span>Settings</span>
                 </a>
               </li>
               <li className="nav-item mb-2">
-                <a href="#" className="nav-link py-2 px-3 rounded">
+                <a href="#" className="nav-link py-2 px-3 rounded text-white hover-highlight">
                   <i className="fas fa-user-shield me-2"></i>
                   <span>Permissions</span>
                 </a>

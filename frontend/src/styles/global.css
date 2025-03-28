@@ -87,6 +87,13 @@ a {
   left: 0;
 }
 
+/* Sidebar navigation hover effect */
+.hover-highlight:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  transform: translateX(5px);
+  transition: all 0.3s ease;
+}
+
 .card {
   background-color: white;
   border: none;

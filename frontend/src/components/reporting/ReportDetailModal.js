@@ -55,92 +55,120 @@ const ReportDetailModal = ({ show, reportId, onClose }) => {
 
   if (!show) return null;
 
+  // Handle backdrop click to close the modal
+  const handleBackdropClick = (e) => {
+    if (e.target.classList.contains('modal') || e.target.classList.contains('modal-backdrop')) {
+      onClose();
+    }
+  };
+
+  // Handle ESC key to close the modal
+  useEffect(() => {
+    const handleEscKey = (e) => {
+      if (e.key === 'Escape' && show) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [show, onClose]);
+
   return (
-    <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
-      <div className="modal-dialog modal-lg modal-dialog-scrollable">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Report Details</h5>
-            <button 
-              type="button" 
-              className="btn-close" 
-              onClick={onClose}
-              aria-label="Close"
-            ></button>
-          </div>
-          <div className="modal-body">
-            {isLoading ? (
-              <LoadingSpinner message="Loading report details..." />
-            ) : error ? (
-              <div className="alert alert-danger">{error}</div>
-            ) : report ? (
-              <div className="report-details">
-                <div className="row mb-4">
-                  <div className="col-md-8">
-                    <h3>{report.title}</h3>
-                    <p className="text-muted">{report.description}</p>
-                  </div>
-                  <div className="col-md-4 text-md-end">
-                    <div className="mb-2">
-                      <StatusBadge status={report.status} />
-                    </div>
-                    <small className="text-muted">
-                      Type: {report.report_type}
-                    </small>
-                  </div>
-                </div>
-                
-                <div className="card mb-3">
-                  <div className="card-header bg-light">
-                    <h6 className="mb-0">Report Insights</h6>
-                  </div>
-                  <div className="card-body bg-light">
-                    <div className="insights">
-                      {formatContent(report.insights)}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="card mb-3">
-                  <div className="card-header bg-light">
-                    <h6 className="mb-0">Report Content</h6>
-                  </div>
-                  <div className="card-body">
-                    <div className="report-content">
-                      {formatContent(report.content)}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="text-muted mt-3">
-                  Report generated on {new Date(report.created_at).toLocaleString()}
-                </div>
-              </div>
-            ) : (
-              <div className="alert alert-warning">Report not found</div>
-            )}
-          </div>
-          <div className="modal-footer">
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
-              onClick={onClose}
-            >
-              Close
-            </button>
-            {report && (
+    <div className="modal-wrapper">
+      <div 
+        className="modal fade show" 
+        style={{ display: 'block' }} 
+        tabIndex="-1"
+        onClick={handleBackdropClick}
+      >
+        <div className="modal-dialog modal-lg modal-dialog-scrollable" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Report Details</h5>
               <button 
                 type="button" 
-                className="btn btn-primary"
+                className="btn-close" 
+                onClick={onClose}
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              {isLoading ? (
+                <LoadingSpinner message="Loading report details..." />
+              ) : error ? (
+                <div className="alert alert-danger">{error}</div>
+              ) : report ? (
+                <div className="report-details">
+                  <div className="row mb-4">
+                    <div className="col-md-8">
+                      <h3>{report.title}</h3>
+                      <p className="text-muted">{report.description}</p>
+                    </div>
+                    <div className="col-md-4 text-md-end">
+                      <div className="mb-2">
+                        <StatusBadge status={report.status} />
+                      </div>
+                      <small className="text-muted">
+                        Type: {report.report_type}
+                      </small>
+                    </div>
+                  </div>
+                  
+                  <div className="card mb-3">
+                    <div className="card-header bg-light">
+                      <h6 className="mb-0">Report Insights</h6>
+                    </div>
+                    <div className="card-body bg-light">
+                      <div className="insights">
+                        {formatContent(report.insights)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="card mb-3">
+                    <div className="card-header bg-light">
+                      <h6 className="mb-0">Report Content</h6>
+                    </div>
+                    <div className="card-body">
+                      <div className="report-content">
+                        {formatContent(report.content)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-muted mt-3">
+                    Report generated on {new Date(report.created_at).toLocaleString()}
+                  </div>
+                </div>
+              ) : (
+                <div className="alert alert-warning">Report not found</div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button 
+                type="button" 
+                className="btn btn-secondary" 
+                onClick={onClose}
               >
-                <i className="fas fa-file-export me-2"></i>
-                Export Report
+                Close
               </button>
-            )}
+              {report && (
+                <button 
+                  type="button" 
+                  className="btn btn-primary"
+                >
+                  <i className="fas fa-file-export me-2"></i>
+                  Export Report
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
-      <div className="modal-backdrop fade show"></div>
+      <div className="modal-backdrop fade show" onClick={onClose}></div>
     </div>
   );
 };
