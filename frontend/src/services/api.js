@@ -8,23 +8,54 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 // Dashboard endpoints
 export const fetchDashboardMetrics = async () => {
-  const response = await axios.get('/dashboard/metrics');
-  return response.data;
+  try {
+    const response = await axios.get('/dashboard/metrics');
+    return response.data.data; // Extract the data field from the response
+  } catch (error) {
+    console.error('Error fetching dashboard metrics:', error);
+    return {
+      policy_count: 0,
+      avg_risk_score: 0,
+      compliance_rate: 0,
+      active_monitors: 0,
+      deltas: {
+        policy_count: 0,
+        avg_risk_score: 0,
+        compliance_rate: 0,
+        active_monitors: 0
+      }
+    };
+  }
 };
 
 export const fetchComplianceStatusChart = async () => {
-  const response = await axios.get('/dashboard/compliance-status');
-  return response.data;
+  try {
+    const response = await axios.get('/charts/compliance-status');
+    return response.data.data; // Extract the data field from the response
+  } catch (error) {
+    console.error('Error fetching compliance status chart:', error);
+    return { labels: [], values: [] };
+  }
 };
 
 export const fetchRiskDistributionChart = async () => {
-  const response = await axios.get('/dashboard/risk-distribution');
-  return response.data;
+  try {
+    const response = await axios.get('/charts/risk-distribution');
+    return response.data.data; // Extract the data field from the response
+  } catch (error) {
+    console.error('Error fetching risk distribution chart:', error);
+    return { labels: [], values: [] };
+  }
 };
 
 export const fetchRecentActivities = async () => {
-  const response = await axios.get('/dashboard/activities');
-  return response.data;
+  try {
+    const response = await axios.get('/activities/recent');
+    return response.data.data; // Extract the data field from the response
+  } catch (error) {
+    console.error('Error fetching recent activities:', error);
+    return [];
+  }
 };
 
 // Governance endpoints
@@ -99,6 +130,17 @@ export const fetchReport = async (id) => {
 export const createReport = async (reportData) => {
   const response = await axios.post('/reports', reportData);
   return response.data;
+};
+
+// Notification endpoints
+export const sendSmsNotification = async (data) => {
+  try {
+    const response = await axios.post('/notifications/sms', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error sending SMS notification:', error);
+    return handleApiError(error);
+  }
 };
 
 // Error handler for API calls

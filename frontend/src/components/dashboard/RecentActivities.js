@@ -96,17 +96,17 @@ const RecentActivities = () => {
         <div key={activity.id || index} className="activity-item d-flex align-items-start mb-3 pb-3 border-bottom">
           <div className="activity-icon me-3">
             <div className="rounded-circle bg-light d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
-              <i className={`fas fa-${getActivityIcon(activity.activity_type)}`}></i>
+              <i className={`fas fa-${getActivityIcon(activity.entity_type || '')}`}></i>
             </div>
           </div>
           <div className="activity-content flex-grow-1">
             <div className="d-flex justify-content-between align-items-start">
               <div>
-                <strong>{activity.activity_type}</strong>
-                <p className="mb-0 text-muted">{activity.description}</p>
+                <strong>{activity.status}</strong>
+                <p className="mb-0 text-muted">{activity.activity}</p>
               </div>
               <div className="activity-time text-muted small">
-                {formatDate(activity.created_at)}
+                {formatDate(activity.date)}
               </div>
             </div>
           </div>
