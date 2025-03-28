@@ -9,7 +9,6 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { gsap } from 'gsap';
 import { fetchRiskDistributionChart } from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 
@@ -27,13 +26,14 @@ const RiskDistributionChart = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const chartRef = useRef(null);
-  const chartContainerRef = useRef(null);
 
   useEffect(() => {
     const getChartData = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchRiskDistributionChart();
+        const response = await fetchRiskDistributionChart();
+        
+        const data = response.data || response;
         
         // Enhanced color gradient based on risk level
         const colors = data.labels.map(label => {
@@ -78,25 +78,6 @@ const RiskDistributionChart = () => {
 
     getChartData();
   }, []);
-
-  // Animation effect when chart becomes visible
-  useEffect(() => {
-    if (chartContainerRef.current && chartData) {
-      // Animate the container
-      gsap.fromTo(
-        chartContainerRef.current,
-        { opacity: 0, y: 20 },
-        { 
-          opacity: 1, 
-          y: 0, 
-          duration: 0.6, 
-          ease: "power2.out"
-        }
-      );
-      
-      // Animate each bar individually (done through chart options)
-    }
-  }, [chartData]);
 
   if (isLoading) {
     return <LoadingSpinner size="30px" />;
@@ -187,40 +168,13 @@ const RiskDistributionChart = () => {
         // Stagger the bar animations for better visual effect
         return context.dataIndex * 100;
       },
-      duration: 1000,
-      easing: 'easeOutQuart',
-      from: (ctx) => {
-        if (ctx.type === 'data' && ctx.mode === 'default') {
-          return { y: ctx.chart.scales.y.getPixelForValue(0) };
-        }
-      }
-    },
-    // Add an annotation line for average risk threshold
-    annotation: {
-      annotations: {
-        thresholdLine: {
-          type: 'line',
-          yMin: 3,
-          yMax: 3,
-          borderColor: 'rgba(255, 99, 132, 0.7)',
-          borderWidth: 2,
-          borderDash: [6, 6],
-          label: {
-            enabled: true,
-            content: 'Risk Threshold',
-            position: 'end',
-            backgroundColor: 'rgba(255, 99, 132, 0.8)',
-            font: {
-              size: 12
-            }
-          }
-        }
-      }
+      duration: 800,
+      easing: 'easeOutCubic'
     }
   };
 
   return (
-    <div ref={chartContainerRef} className="chart-container" style={{ height: '300px', position: 'relative' }}>
+    <div className="chart-container" style={{ height: '300px', position: 'relative' }}>
       <div className="chart-title mb-2" style={{ textAlign: 'center', fontWeight: 'bold', color: '#2c3e50' }}>
         Risk Distribution by Severity Level
       </div>

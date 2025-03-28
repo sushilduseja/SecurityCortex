@@ -8,7 +8,6 @@ import {
   LinearScale,
   Title
 } from 'chart.js';
-import { gsap } from 'gsap';
 import { fetchComplianceStatusChart } from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 
@@ -21,6 +20,51 @@ ChartJS.register(
   Title
 );
 
+// Create the center text plugin
+const centerTextPlugin = {
+  id: 'centerText',
+  beforeDraw: function(chart) {
+    if (chart.config.type === 'doughnut') {
+      // Get ctx and data
+      const ctx = chart.ctx;
+      const data = chart.data.datasets[0].data;
+      const total = data.reduce((a, b) => a + b, 0);
+      
+      // Calculate compliance rate
+      const compliantIndex = chart.data.labels.findIndex(label => 
+        label.toLowerCase().includes('compliant') && !label.toLowerCase().includes('non') && !label.toLowerCase().includes('partially')
+      );
+      
+      const complianceRate = compliantIndex >= 0 
+        ? Math.round((data[compliantIndex] / total) * 100) 
+        : 0;
+        
+      // Draw center text
+      const centerX = chart.getDatasetMeta(0).data[0] ? chart.getDatasetMeta(0).data[0].x : chart.width / 2;
+      const centerY = chart.getDatasetMeta(0).data[0] ? chart.getDatasetMeta(0).data[0].y : chart.height / 2;
+      
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Draw main percentage
+      ctx.font = 'bold 24px Arial';
+      ctx.fillStyle = '#2c3e50';
+      ctx.fillText(`${complianceRate}%`, centerX, centerY - 10);
+      
+      // Draw label
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#7f8c8d';
+      ctx.fillText('Compliance', centerX, centerY + 15);
+      
+      ctx.restore();
+    }
+  }
+};
+
+// Register the plugin globally
+ChartJS.register(centerTextPlugin);
+
 const ComplianceStatusChart = () => {
   const [chartData, setChartData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +76,9 @@ const ComplianceStatusChart = () => {
     const getChartData = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchComplianceStatusChart();
+        const response = await fetchComplianceStatusChart();
+        
+        const data = response.data || response;
         
         setChartData({
           labels: data.labels,
@@ -68,22 +114,6 @@ const ComplianceStatusChart = () => {
 
     getChartData();
   }, []);
-
-  // Animation effect when chart becomes visible
-  useEffect(() => {
-    if (chartContainerRef.current && chartData) {
-      gsap.fromTo(
-        chartContainerRef.current,
-        { opacity: 0, scale: 0.9 },
-        { 
-          opacity: 1, 
-          scale: 1, 
-          duration: 0.7, 
-          ease: "elastic.out(1, 0.75)" 
-        }
-      );
-    }
-  }, [chartData]);
 
   if (isLoading) {
     return <LoadingSpinner size="30px" />;
@@ -131,82 +161,19 @@ const ComplianceStatusChart = () => {
           }
         }
       },
-      datalabels: {
-        color: '#fff',
-        font: {
-          weight: 'bold',
-          size: 12
-        },
-        formatter: (value, ctx) => {
-          const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-          const percentage = Math.round((value / total) * 100);
-          return percentage > 5 ? `${percentage}%` : '';
-        }
-      }
+      // Enable centerText plugin
+      centerText: {}
     },
     animation: {
       animateRotate: true,
       animateScale: true,
-      duration: 1500,
-      easing: 'easeOutQuart'
+      duration: 800,
+      easing: 'easeOutCubic'
     }
   };
-
-  // Create the center text plugin if not already defined
-  const centerText = {
-    id: 'centerText',
-    beforeDraw: function(chart) {
-      if (chart.config.type === 'doughnut') {
-        // Get ctx and data
-        const ctx = chart.ctx;
-        const data = chart.data.datasets[0].data;
-        const total = data.reduce((a, b) => a + b, 0);
-        
-        // Calculate compliance rate
-        const compliantIndex = chart.data.labels.findIndex(label => 
-          label.toLowerCase().includes('compliant') && !label.toLowerCase().includes('non') && !label.toLowerCase().includes('partially')
-        );
-        
-        const complianceRate = compliantIndex >= 0 
-          ? Math.round((data[compliantIndex] / total) * 100) 
-          : 0;
-          
-        // Draw center text
-        const centerX = chart.getDatasetMeta(0).data[0] ? chart.getDatasetMeta(0).data[0].x : chart.width / 2;
-        const centerY = chart.getDatasetMeta(0).data[0] ? chart.getDatasetMeta(0).data[0].y : chart.height / 2;
-        
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // Draw main percentage
-        ctx.font = 'bold 24px Arial';
-        ctx.fillStyle = '#2c3e50';
-        ctx.fillText(`${complianceRate}%`, centerX, centerY - 10);
-        
-        // Draw label
-        ctx.font = '14px Arial';
-        ctx.fillStyle = '#7f8c8d';
-        ctx.fillText('Compliance', centerX, centerY + 15);
-        
-        ctx.restore();
-      }
-    }
-  };
-
-  // Register the plugin
-  if (!ChartJS.registry.plugins.get('centerText')) {
-    ChartJS.register({
-      id: 'centerText',
-      ...centerText
-    });
-  }
-  
-  // Add the plugin to our options
-  options.plugins.centerText = {};
 
   return (
-    <div ref={chartContainerRef} className="chart-container" style={{ height: '300px', position: 'relative' }}>
+    <div className="chart-container" style={{ height: '300px', position: 'relative' }}>
       {chartData && (
         <Doughnut 
           ref={chartRef}

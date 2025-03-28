@@ -172,17 +172,51 @@ const Dashboard = ({ metrics = {}, isLoading }) => {
       
       <div className="dashboard-charts row mb-4">
         <div className="col-md-6 mb-4 mb-md-0">
-          <div className="card h-100">
-            <div className="card-body">
-              <h5 className="card-title mb-4">Compliance Status</h5>
+          <div className="card h-100 border-0 shadow-sm">
+            <div className="card-header bg-white border-0 pb-0 pt-3">
+              <div className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">
+                  <i className="fas fa-check-circle text-primary me-2"></i>
+                  Compliance Status
+                </h5>
+                <div className="dropdown">
+                  <button className="btn btn-sm btn-outline-secondary border-0" type="button" id="complianceOptions" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i className="fas fa-ellipsis-v"></i>
+                  </button>
+                  <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="complianceOptions">
+                    <li><button className="dropdown-item" type="button"><i className="fas fa-file-export me-2"></i>Export</button></li>
+                    <li><button className="dropdown-item" type="button"><i className="fas fa-redo-alt me-2"></i>Refresh</button></li>
+                    <li><button className="dropdown-item" type="button"><i className="fas fa-info-circle me-2"></i>Details</button></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="card-body pt-2">
               <ComplianceStatusChart />
             </div>
           </div>
         </div>
         <div className="col-md-6">
-          <div className="card h-100">
-            <div className="card-body">
-              <h5 className="card-title mb-4">Risk Distribution</h5>
+          <div className="card h-100 border-0 shadow-sm">
+            <div className="card-header bg-white border-0 pb-0 pt-3">
+              <div className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">
+                  <i className="fas fa-chart-bar text-warning me-2"></i>
+                  Risk Distribution
+                </h5>
+                <div className="dropdown">
+                  <button className="btn btn-sm btn-outline-secondary border-0" type="button" id="riskOptions" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i className="fas fa-ellipsis-v"></i>
+                  </button>
+                  <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="riskOptions">
+                    <li><button className="dropdown-item" type="button"><i className="fas fa-file-export me-2"></i>Export</button></li>
+                    <li><button className="dropdown-item" type="button"><i className="fas fa-redo-alt me-2"></i>Refresh</button></li>
+                    <li><button className="dropdown-item" type="button"><i className="fas fa-info-circle me-2"></i>Details</button></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="card-body pt-2">
               <RiskDistributionChart />
             </div>
           </div>
@@ -191,9 +225,26 @@ const Dashboard = ({ metrics = {}, isLoading }) => {
       
       <div className="dashboard-activities row">
         <div className="col-12">
-          <div className="card">
-            <div className="card-body">
-              <h5 className="card-title mb-4">Recent Activities</h5>
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-white border-0 pb-0 pt-3">
+              <div className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">
+                  <i className="fas fa-history text-info me-2"></i>
+                  Recent Activities
+                </h5>
+                <div className="dropdown">
+                  <button className="btn btn-sm btn-outline-secondary border-0" type="button" id="activityOptions" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i className="fas fa-ellipsis-v"></i>
+                  </button>
+                  <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="activityOptions">
+                    <li><button className="dropdown-item" type="button"><i className="fas fa-filter me-2"></i>Filter</button></li>
+                    <li><button className="dropdown-item" type="button"><i className="fas fa-sync me-2"></i>Refresh</button></li>
+                    <li><button className="dropdown-item" type="button"><i className="fas fa-external-link-alt me-2"></i>View All</button></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="card-body pt-2">
               <RecentActivities />
             </div>
           </div>
