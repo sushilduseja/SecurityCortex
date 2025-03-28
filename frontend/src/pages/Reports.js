@@ -5,6 +5,19 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import StatusBadge from '../components/common/StatusBadge';
 import ReportFormModal from '../components/reporting/ReportFormModal';
 import ReportDetailModal from '../components/reporting/ReportDetailModal';
+import ReportCard from '../components/reporting/ReportCard';
+
+// Format the report type to be more readable
+const formatReportType = (type) => {
+  if (!type) return '';
+  
+  // Convert from snake_case or camelCase to Title Case with spaces
+  return type
+    .replace(/_/g, ' ')  // Replace underscores with spaces
+    .replace(/([A-Z])/g, ' $1')  // Add space before capital letters
+    .replace(/^\w/, c => c.toUpperCase())  // Capitalize first letter
+    .trim();  // Remove any leading/trailing spaces
+};
 
 const Reports = () => {
   const [reports, setReports] = useState([]);
@@ -90,25 +103,15 @@ const Reports = () => {
             {Object.keys(reportsByType).length > 0 ? (
               Object.keys(reportsByType).map(type => (
                 <div className="col-md-6 col-lg-3 mb-3" key={type}>
-                  <div className="card h-100">
-                    <div className="card-body">
-                      <h6 className="card-title text-truncate">{type}</h6>
-                      <div className="d-flex align-items-center mt-3">
-                        <div className="report-icon bg-primary text-white p-3 rounded me-3">
-                          <i className="fas fa-file-alt"></i>
-                        </div>
-                        <div>
-                          <h3 className="mb-0">{reportsByType[type].length}</h3>
-                          <p className="text-muted mb-0">Reports</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <ReportCard 
+                    reportType={type} 
+                    count={reportsByType[type].length} 
+                  />
                 </div>
               ))
             ) : (
               <div className="col-12">
-                <div className="card mb-4">
+                <div className="card mb-4 border-0 shadow-sm">
                   <div className="card-body">
                     <p className="mb-0 text-center">
                       <i className="fas fa-info-circle me-2 text-primary"></i>
@@ -120,63 +123,78 @@ const Reports = () => {
             )}
           </div>
           
-          <div className="card mb-4">
+          <div className="card mb-4 border-0 shadow-sm">
             <div className="card-body">
-              <p className="mb-0">
-                <i className="fas fa-info-circle me-2 text-primary"></i>
-                AI governance reports provide insights into your organization's AI governance practices.
-                Generate reports to track policy compliance, risk assessments, and overall governance status.
-              </p>
+              <div className="d-flex">
+                <div className="me-3">
+                  <i className="fas fa-lightbulb text-warning fs-3"></i>
+                </div>
+                <div>
+                  <h6 className="mb-1">AI Governance Reports</h6>
+                  <p className="mb-0 text-muted">
+                    These reports provide insights into your organization's AI governance practices.
+                    Generate reports to track policy compliance, risk assessments, and overall governance status.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Report Type</th>
-                  <th>Created</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reports.length === 0 ? (
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-white py-3 border-0">
+              <h5 className="mb-0">
+                <i className="fas fa-file-alt me-2 text-primary"></i>
+                Available Reports
+              </h5>
+            </div>
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
                   <tr>
-                    <td colSpan={5} className="text-center py-4">No reports found</td>
+                    <th>Title</th>
+                    <th>Report Type</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                   </tr>
-                ) : (
-                  reports.map((report) => (
-                    <tr key={report.id}>
-                      <td>{report.title}</td>
-                      <td>{report.report_type}</td>
-                      <td>{new Date(report.created_at).toLocaleDateString()}</td>
-                      <td>
-                        <StatusBadge status={report.status} />
-                      </td>
-                      <td>
-                        <div className="d-flex gap-2">
-                          <button 
-                            className="btn btn-sm btn-light" 
-                            title="View Report"
-                            onClick={() => handleViewReport(report.id)}
-                          >
-                            <i className="fas fa-eye"></i>
-                          </button>
-                          <button className="btn btn-sm btn-light" title="Download">
-                            <i className="fas fa-download"></i>
-                          </button>
-                          <button className="btn btn-sm btn-light" title="Share">
-                            <i className="fas fa-share-alt"></i>
-                          </button>
-                        </div>
-                      </td>
+                </thead>
+                <tbody>
+                  {reports.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-4">No reports found</td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    reports.map((report) => (
+                      <tr key={report.id}>
+                        <td>{report.title}</td>
+                        <td>{formatReportType(report.report_type)}</td>
+                        <td>{new Date(report.created_at).toLocaleDateString()}</td>
+                        <td>
+                          <StatusBadge status={report.status} />
+                        </td>
+                        <td>
+                          <div className="d-flex gap-2">
+                            <button 
+                              className="btn btn-sm btn-light" 
+                              title="View Report"
+                              onClick={() => handleViewReport(report.id)}
+                            >
+                              <i className="fas fa-eye"></i>
+                            </button>
+                            <button className="btn btn-sm btn-light" title="Download">
+                              <i className="fas fa-download"></i>
+                            </button>
+                            <button className="btn btn-sm btn-light" title="Share">
+                              <i className="fas fa-share-alt"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}
