@@ -60,76 +60,192 @@ export const fetchRecentActivities = async () => {
 
 // Governance endpoints
 export const fetchPolicies = async () => {
-  const response = await axios.get('/policies');
-  return response.data;
+  try {
+    const response = await axios.get('/policies');
+    if (response.data && response.data.success) {
+      // Ensure we always return an array even if the API returns null or undefined
+      return Array.isArray(response.data.data) ? response.data.data : [];
+    }
+    throw new Error('Invalid response format');
+  } catch (error) {
+    console.error('Error fetching policies:', error);
+    return [];
+  }
 };
 
 export const fetchPolicy = async (id) => {
-  const response = await axios.get(`/policies/${id}`);
-  return response.data;
+  try {
+    const response = await axios.get(`/policies/${id}`);
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    throw new Error('Policy not found');
+  } catch (error) {
+    console.error(`Error fetching policy ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createPolicy = async (policyData) => {
-  const response = await axios.post('/policies', policyData);
-  return response.data;
+  try {
+    const response = await axios.post('/policies', policyData);
+    if (response.data && response.data.success) {
+      return response.data.data;
+    }
+    throw new Error('Failed to create policy');
+  } catch (error) {
+    console.error('Error creating policy:', error);
+    throw error;
+  }
 };
 
 export const updatePolicy = async (id, policyData) => {
-  const response = await axios.put(`/policies/${id}`, policyData);
-  return response.data;
+  try {
+    const response = await axios.put(`/policies/${id}`, policyData);
+    if (response.data && response.data.success) {
+      return true;
+    }
+    throw new Error('Failed to update policy');
+  } catch (error) {
+    console.error(`Error updating policy ${id}:`, error);
+    throw error;
+  }
 };
 
 // Risk Assessment endpoints
 export const fetchRiskAssessments = async () => {
-  const response = await axios.get('/risk-assessments');
-  return response.data;
+  try {
+    const response = await axios.get('/risk-assessments');
+    if (response.data && response.data.success) {
+      // Ensure we always return an array even if the API returns null or undefined
+      return Array.isArray(response.data.data) ? response.data.data : [];
+    }
+    throw new Error('Invalid response format');
+  } catch (error) {
+    console.error('Error fetching risk assessments:', error);
+    return [];
+  }
 };
 
 export const fetchRiskAssessment = async (id) => {
-  const response = await axios.get(`/risk-assessments/${id}`);
-  return response.data;
+  try {
+    const response = await axios.get(`/risk-assessments/${id}`);
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    throw new Error('Risk assessment not found');
+  } catch (error) {
+    console.error(`Error fetching risk assessment ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createRiskAssessment = async (assessmentData) => {
-  const response = await axios.post('/risk-assessments', assessmentData);
-  return response.data;
+  try {
+    const response = await axios.post('/risk-assessments', assessmentData);
+    if (response.data && response.data.success) {
+      return response.data.data;
+    }
+    throw new Error('Failed to create risk assessment');
+  } catch (error) {
+    console.error('Error creating risk assessment:', error);
+    throw error;
+  }
 };
 
 // Compliance Monitoring endpoints
 export const fetchComplianceMonitors = async () => {
-  const response = await axios.get('/compliance-monitors');
-  return response.data;
+  try {
+    const response = await axios.get('/compliance-monitors');
+    if (response.data && response.data.success) {
+      // Ensure we always return an array even if the API returns null or undefined
+      return Array.isArray(response.data.data) ? response.data.data : [];
+    }
+    throw new Error('Invalid response format');
+  } catch (error) {
+    console.error('Error fetching compliance monitors:', error);
+    return [];
+  }
 };
 
 export const fetchComplianceMonitor = async (id) => {
-  const response = await axios.get(`/compliance-monitors/${id}`);
-  return response.data;
+  try {
+    const response = await axios.get(`/compliance-monitors/${id}`);
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    throw new Error('Compliance monitor not found');
+  } catch (error) {
+    console.error(`Error fetching compliance monitor ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createComplianceMonitor = async (monitorData) => {
-  const response = await axios.post('/compliance-monitors', monitorData);
-  return response.data;
+  try {
+    const response = await axios.post('/compliance-monitors', monitorData);
+    if (response.data && response.data.success) {
+      return response.data.data;
+    }
+    throw new Error('Failed to create compliance monitor');
+  } catch (error) {
+    console.error('Error creating compliance monitor:', error);
+    throw error;
+  }
 };
 
 export const updateComplianceMonitor = async (id, monitorData) => {
-  const response = await axios.put(`/compliance-monitors/${id}`, monitorData);
-  return response.data;
+  try {
+    const response = await axios.put(`/compliance-monitors/${id}`, monitorData);
+    if (response.data && response.data.success) {
+      return true;
+    }
+    throw new Error('Failed to update compliance monitor');
+  } catch (error) {
+    console.error(`Error updating compliance monitor ${id}:`, error);
+    throw error;
+  }
 };
 
 // Reporting endpoints
 export const fetchReports = async () => {
-  const response = await axios.get('/reports');
-  return response.data;
+  try {
+    const response = await axios.get('/reports');
+    if (response.data && response.data.success) {
+      // Ensure we always return an array even if the API returns null or undefined
+      return Array.isArray(response.data.data) ? response.data.data : [];
+    }
+    throw new Error('Invalid response format');
+  } catch (error) {
+    console.error('Error fetching reports:', error);
+    return [];
+  }
 };
 
 export const fetchReport = async (id) => {
-  const response = await axios.get(`/reports/${id}`);
-  return response.data;
+  try {
+    const response = await axios.get(`/reports/${id}`);
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    throw new Error('Report not found');
+  } catch (error) {
+    console.error(`Error fetching report ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createReport = async (reportData) => {
-  const response = await axios.post('/reports', reportData);
-  return response.data;
+  try {
+    const response = await axios.post('/reports', reportData);
+    if (response.data && response.data.success) {
+      return response.data.data;
+    }
+    throw new Error('Failed to create report');
+  } catch (error) {
+    console.error('Error creating report:', error);
+    throw error;
+  }
 };
 
 // Notification endpoints

@@ -3,66 +3,46 @@ import { createComplianceMonitor } from '../../services/api';
 
 const MonitorFormModal = ({ show, onClose, onMonitorCreated }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [modelOrSystem, setModelOrSystem] = useState('');
-  const [thresholdValue, setThresholdValue] = useState(0.8);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    model_or_system: '',
+    threshold_value: 0.8,
+  });
   const [error, setError] = useState(null);
   
-  // Standard compliance metrics from backend
-  const standardMetrics = [
-    {
-      name: "Data Privacy Compliance",
-      description: "Monitors compliance with data privacy policies and regulations",
-      threshold: 0.9
-    },
-    {
-      name: "Fairness Metric",
-      description: "Monitors fairness across different demographic groups",
-      threshold: 0.85
-    },
-    {
-      name: "Explainability Index",
-      description: "Tracks the explainability level of model decisions",
-      threshold: 0.7
-    },
-    {
-      name: "Security Control Compliance",
-      description: "Monitors adherence to security controls and policies",
-      threshold: 0.95
-    },
-    {
-      name: "Documentation Completeness",
-      description: "Tracks the completeness of model documentation",
-      threshold: 0.8
-    },
-    {
-      name: "Model Performance Stability",
-      description: "Monitors stability of model performance over time",
-      threshold: 0.9
-    },
-    {
-      name: "Data Drift Detection",
-      description: "Monitors for drift in input data distribution",
-      threshold: 0.05
-    },
-    {
-      name: "Human Oversight Confirmation",
-      description: "Tracks the percentage of decisions reviewed by humans",
-      threshold: 0.25
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    
+    // Convert to number for numeric fields
+    if (name === 'threshold_value') {
+      newValue = parseFloat(value) || 0;
     }
-  ];
+    
+    setFormData({
+      ...formData,
+      [name]: newValue
+    });
+  };
   
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!name.trim() || !description.trim() || !modelOrSystem.trim() || thresholdValue === null) {
-      setError('Please fill in all required fields');
+    // Validation
+    if (!formData.name) {
+      setError('Monitor name is required');
       return;
     }
     
-    if (thresholdValue < 0 || thresholdValue > 1) {
-      setError('Threshold value must be between 0 and 1');
+    if (!formData.model_or_system) {
+      setError('Model/System name is required');
+      return;
+    }
+    
+    // Validate threshold value is between 0 and 1
+    if (formData.threshold_value < 0 || formData.threshold_value > 1) {
+      setError('Threshold value must be between 0 and 1 (0% - 100%)');
       return;
     }
     
@@ -71,10 +51,10 @@ const MonitorFormModal = ({ show, onClose, onMonitorCreated }) => {
     
     try {
       const monitor = {
-        name,
-        description,
-        model_or_system: modelOrSystem,
-        threshold_value: Number(thresholdValue)
+        ...formData,
+        status: 'Active',
+        current_value: Math.random() * formData.threshold_value * 1.2, // Simulate initial value
+        alert_level: 'Normal'
       };
       
       const response = await createComplianceMonitor(monitor);
@@ -96,24 +76,33 @@ const MonitorFormModal = ({ show, onClose, onMonitorCreated }) => {
   };
   
   const resetForm = () => {
-    setName('');
-    setDescription('');
-    setModelOrSystem('');
-    setThresholdValue(0.8);
+    setFormData({
+      name: '',
+      description: '',
+      model_or_system: '',
+      threshold_value: 0.8,
+    });
     setError(null);
   };
   
-  const handleSelectPreset = (preset) => {
-    setName(preset.name);
-    setDescription(preset.description);
-    setThresholdValue(preset.threshold);
-  };
+  // Model types suggestions for dropdown
+  const modelTypes = [
+    'Large Language Model',
+    'Computer Vision Model',
+    'Recommendation System',
+    'Chatbot',
+    'ML Decision System',
+    'Voice Assistant',
+    'Business Intelligence Tool',
+    'Data Analytics Platform',
+    'AI Service'
+  ];
   
   if (!show) return null;
   
   return (
     <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
-      <div className="modal-dialog modal-lg">
+      <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
             <h5 className="modal-title">Create Compliance Monitor</h5>
@@ -129,28 +118,10 @@ const MonitorFormModal = ({ show, onClose, onMonitorCreated }) => {
               <div className="alert alert-danger">{error}</div>
             )}
             
-            <div className="alert alert-info mb-3">
+            <div className="alert alert-info">
               <i className="fas fa-info-circle me-2"></i>
-              Compliance monitors track key metrics to ensure AI systems meet governance requirements.
-            </div>
-            
-            <div className="row mb-4">
-              <div className="col-12">
-                <label className="form-label">Quick Start: Select Standard Metric</label>
-                <div className="d-flex flex-wrap gap-2">
-                  {standardMetrics.map((metric, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      className="btn btn-sm btn-outline-secondary"
-                      onClick={() => handleSelectPreset(metric)}
-                      title={metric.description}
-                    >
-                      {metric.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              Compliance monitors track key metrics for AI systems to ensure they meet governance requirements.
+              When metrics fall outside acceptable thresholds, alerts will be generated.
             </div>
             
             <form onSubmit={handleSubmit}>
@@ -160,60 +131,80 @@ const MonitorFormModal = ({ show, onClose, onMonitorCreated }) => {
                   type="text"
                   className="form-control"
                   id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="e.g., Model Accuracy Monitor, Bias Detection Monitor"
                   required
                 />
               </div>
               
               <div className="mb-3">
-                <label htmlFor="description" className="form-label">Description <span className="text-danger">*</span></label>
-                <textarea
-                  className="form-control"
-                  id="description"
-                  rows="2"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  required
-                ></textarea>
-              </div>
-              
-              <div className="mb-3">
-                <label htmlFor="modelOrSystem" className="form-label">Model or System <span className="text-danger">*</span></label>
+                <label htmlFor="model_or_system" className="form-label">Model/System <span className="text-danger">*</span></label>
                 <input
                   type="text"
                   className="form-control"
-                  id="modelOrSystem"
-                  value={modelOrSystem}
-                  onChange={(e) => setModelOrSystem(e.target.value)}
+                  id="model_or_system"
+                  name="model_or_system"
+                  list="modelTypesList"
+                  value={formData.model_or_system}
+                  onChange={handleChange}
+                  placeholder="e.g., Customer Service LLM, Recommendation Engine"
                   required
-                  placeholder="e.g., SentimentAnalyzer-v2, ProductRecommender, etc."
+                />
+                <datalist id="modelTypesList">
+                  {modelTypes.map((type, index) => (
+                    <option key={index} value={type} />
+                  ))}
+                </datalist>
+              </div>
+              
+              <div className="mb-3">
+                <label htmlFor="description" className="form-label">Description</label>
+                <textarea
+                  className="form-control"
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  placeholder="Describe what this monitor tracks and why it's important..."
+                  rows={3}
                 />
               </div>
               
               <div className="mb-3">
-                <label htmlFor="thresholdValue" className="form-label">
+                <label htmlFor="threshold_value" className="form-label">
                   Threshold Value <span className="text-danger">*</span>
-                  <small className="text-muted ms-2">(0-1)</small>
+                  <small className="text-muted ms-2">(0-1, where 1 is 100%)</small>
                 </label>
                 <div className="input-group">
                   <input
-                    type="number"
-                    className="form-control"
-                    id="thresholdValue"
-                    value={thresholdValue}
-                    onChange={(e) => setThresholdValue(e.target.value)}
-                    required
+                    type="range"
+                    className="form-range"
+                    id="threshold_value_range"
                     min="0"
                     max="1"
-                    step="0.05"
+                    step="0.01"
+                    value={formData.threshold_value}
+                    onChange={e => setFormData({...formData, threshold_value: parseFloat(e.target.value)})}
                   />
-                  <span className="input-group-text">
-                    {thresholdValue * 100}%
-                  </span>
+                  <input
+                    type="number"
+                    className="form-control ms-2"
+                    id="threshold_value"
+                    name="threshold_value"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    style={{ width: '80px' }}
+                    value={formData.threshold_value}
+                    onChange={handleChange}
+                    required
+                  />
+                  <span className="input-group-text">({(formData.threshold_value * 100).toFixed(0)}%)</span>
                 </div>
                 <div className="form-text">
-                  Set the threshold that determines when an alert will be triggered.
+                  Set the threshold at which alerts will be triggered. Values below this threshold will generate alerts.
                 </div>
               </div>
             </form>

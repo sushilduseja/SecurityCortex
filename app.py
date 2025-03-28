@@ -26,15 +26,23 @@ init_db()
 
 # Routes for serving the SPA
 @app.route('/')
+@app.route('/governance')
+@app.route('/risk-assessment')
+@app.route('/compliance')
+@app.route('/reports')
 def index():
-    """Serve the main application page"""
+    """Serve the main application page for any valid route in the SPA"""
     return send_from_directory('static', 'index.html')
 
 
 @app.route('/<path:path>')
 def serve_static(path):
     """Serve static files"""
-    return send_from_directory('static', path)
+    # Check if path has an extension (likely a static asset)
+    if '.' in path:
+        return send_from_directory('static', path)
+    # For non-file paths (routes), serve the index.html for client-side routing
+    return send_from_directory('static', 'index.html')
 
 
 # API Routes
