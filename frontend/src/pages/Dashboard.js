@@ -6,7 +6,6 @@ import ComplianceStatusChart from '../components/dashboard/ComplianceStatusChart
 import RiskDistributionChart from '../components/dashboard/RiskDistributionChart';
 import RecentActivities from '../components/dashboard/RecentActivities';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import NotificationModal from '../components/notifications/NotificationModal';
 
 // Animate dashboard components with enhanced effects
 const animateDashboard = () => {
@@ -67,8 +66,6 @@ const animateDashboard = () => {
 };
 
 const Dashboard = ({ metrics = {}, isLoading }) => {
-  const [showNotificationModal, setShowNotificationModal] = useState(false);
-  const [notificationTarget, setNotificationTarget] = useState(null);
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'compliance', 'risk'
   const [collapsed, setCollapsed] = useState(false);
   
@@ -88,17 +85,6 @@ const Dashboard = ({ metrics = {}, isLoading }) => {
   useEffect(() => {
     animateDashboard();
   }, [activeTab]);
-  
-  const handleOpenNotificationModal = (entityType, alertType) => {
-    setNotificationTarget({
-      entityType: entityType,
-      entityName: `${entityType} Alert`,
-      initialData: {
-        notification_type: alertType || 'custom'
-      }
-    });
-    setShowNotificationModal(true);
-  };
 
   if (isLoading) {
     return <LoadingSpinner message="Loading dashboard data..." />;
@@ -349,39 +335,7 @@ const Dashboard = ({ metrics = {}, isLoading }) => {
         />
         
         <div className="dashboard-actions">
-          {activeTab === 'overview' && (
-            <div className="dropdown d-inline-block">
-              <button className="btn btn-primary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i className="fas fa-bell me-2"></i> Send Notification
-              </button>
-              <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
-                <li>
-                  <button 
-                    className="dropdown-item" 
-                    onClick={() => handleOpenNotificationModal('Compliance', 'compliance_alert')}
-                  >
-                    <i className="fas fa-check-square me-2"></i> Compliance Alert
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    className="dropdown-item" 
-                    onClick={() => handleOpenNotificationModal('Risk', 'risk_assessment')}
-                  >
-                    <i className="fas fa-exclamation-triangle me-2"></i> Risk Assessment Update
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    className="dropdown-item" 
-                    onClick={() => handleOpenNotificationModal('System', 'custom')}
-                  >
-                    <i className="fas fa-envelope me-2"></i> Custom Message
-                  </button>
-                </li>
-              </ul>
-            </div>
-          )}
+          {/* Actions removed */}
         </div>
       </div>
       
@@ -424,16 +378,6 @@ const Dashboard = ({ metrics = {}, isLoading }) => {
       {activeTab === 'overview' && renderOverviewContent()}
       {activeTab === 'compliance' && renderComplianceContent()}
       {activeTab === 'risk' && renderRiskContent()}
-      
-      {/* Notification Modal */}
-      <NotificationModal
-        show={showNotificationModal}
-        onClose={() => setShowNotificationModal(false)}
-        title={notificationTarget ? `Send ${notificationTarget.entityName} Notification` : 'Send Notification'}
-        entityType={notificationTarget?.entityType}
-        entityName={notificationTarget?.entityName}
-        initialData={notificationTarget?.initialData}
-      />
     </div>
   );
 };

@@ -491,6 +491,18 @@ def api_create_report():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+# Import new API modules
+try:
+    from app.infrastructure.logging.error_handler import configure_error_handlers
+    
+    # Configure error handling
+    configure_error_handlers(app)
+    
+    print("API routes and error handlers registered successfully")
+except ImportError as e:
+    print(f"Warning: Could not register all API routes: {str(e)}")
+    print("The application will still run, but some features may not be available.")
+
 # Run the application
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
