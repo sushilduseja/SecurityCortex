@@ -1,4 +1,3 @@
-
 /**
  * AI Governance Dashboard
  * Chart Utilities for Advanced Visualizations
@@ -705,4 +704,79 @@ if (typeof module !== 'undefined' && module.exports) {
     createAdvancedRiskDistributionChart,
     createComplianceTrendChart
   };
+}
+
+
+// Chart utility functions for AI Governance Dashboard
+import plotly from 'plotly.js-dist';
+
+// Initialize and render advanced charts
+export function initCharts() {
+  // This function will be called when the page loads
+  console.log('Initializing advanced charts');
+
+  // Check if charts need to be rendered
+  setTimeout(() => {
+    renderAdvancedCharts();
+  }, 100);
+}
+
+// Render all advanced charts on the page
+export function renderAdvancedCharts() {
+  // This will be called after the DOM is fully loaded
+  console.log('Rendering advanced charts');
+}
+
+// Export chart configuration utilities
+export const chartConfig = {
+  responsive: true,
+  displayModeBar: false,
+  staticPlot: false,
+  toImageButtonOptions: {
+    format: 'png',
+    filename: 'ai_governance_chart',
+    height: 500,
+    width: 700,
+    scale: 2
+  }
+};
+
+// Common chart colors
+export const chartColors = {
+  primary: 'rgba(67, 97, 238, 1)',
+  secondary: 'rgba(108, 117, 125, 1)',
+  success: 'rgba(40, 167, 69, 1)',
+  warning: 'rgba(255, 193, 7, 1)',
+  danger: 'rgba(220, 53, 69, 1)',
+  info: 'rgba(23, 162, 184, 1)',
+
+  // Color scales for various chart types
+  compliance: [
+    'rgba(92, 184, 92, 0.8)',    // Good
+    'rgba(91, 192, 222, 0.8)',   // Normal
+    'rgba(240, 173, 78, 0.8)',   // Warning
+    'rgba(217, 83, 79, 0.8)'     // Critical
+  ],
+
+  risk: [
+    'rgba(13, 202, 240, 0.8)',   // Minimal
+    'rgba(32, 201, 151, 0.8)',   // Low
+    'rgba(255, 193, 7, 0.8)',    // Medium
+    'rgba(253, 126, 20, 0.8)',   // High
+    'rgba(220, 53, 69, 0.8)'     // Critical
+  ]
+};
+
+// Generate a random set of realistic sample data for testing charts
+export function generateSampleData(categories, min, max, count) {
+  const data = [];
+  for (let i = 0; i < count; i++) {
+    let values = [];
+    for (let j = 0; j < categories.length; j++) {
+      // Generate semi-random values that follow a pattern
+      values.push(Math.floor(min + Math.random() * (max - min)));
+    }
+    data.push(values);
+  }
+  return data;
 }

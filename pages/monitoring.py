@@ -210,7 +210,9 @@ with tab1:
                     'xanchor': 'center',
                     'yanchor': 'top',
                     'font': {'size': 18}
-                }
+                },
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)'
             )
 
             # Add annotations in the center
@@ -224,7 +226,8 @@ with tab1:
                 )]
             )
 
-            st.plotly_chart(fig, use_container_width=True)
+            # Use div-based rendering for better performance and compatibility
+            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
             # Add a horizontal stacked bar chart for alert levels comparison
             st.subheader("Alert Levels by Policy Category")

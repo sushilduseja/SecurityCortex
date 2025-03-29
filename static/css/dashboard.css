@@ -439,6 +439,37 @@
     z-index: 1000;
 }
 
+/* Force Plotly charts to be responsive */
+.js-plotly-plot, .plot-container {
+    width: 100% !important;
+}
+
+.plotly-container {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Fix for Plotly chart rendering */
+.svg-container {
+    width: 100% !important;
+}
+
+/* Fix for chart animation and loading */
+.chart-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* Prevent Streamlit chart overflow */
+[data-testid="stChart"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
 .risk-gauge-container {
     position: relative;
     height: 80px;
