@@ -72,57 +72,13 @@ args = "npx webpack serve --mode development"
 waitForPort = 3000
 
 [[workflows.workflow]]
-name = "React Development"
-author = 40915213
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm install"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx webpack serve --mode development --port 3000"
-
-[[workflows.workflow]]
-name = "Backend API Server"
-author = 40915213
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python main.py"
-
-[[workflows.workflow]]
-name = "Frontend Development"
-author = 40915213
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm install"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx webpack serve --mode development --port 3000"
-
-[[workflows.workflow]]
-name = "AI Governance Platform"
-author = 40915213
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python main.py"
-
-[[workflows.workflow]]
 name = "Complete AI Governance Platform"
 author = 40915213
 mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "# Install dependencies"
+args = "python main.py"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
@@ -130,11 +86,7 @@ args = "npm install"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "# Start the backend server"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python main.py"
+args = "npx webpack serve --mode development --port 3000"
 
 [[workflows.workflow]]
 name = "Backend Server"
