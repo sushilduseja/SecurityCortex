@@ -359,3 +359,350 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = ChartUtils;
 }
 
+/**
+ * Chart Utilities for AI Governance Dashboard
+ * Contains functions to create advanced, interactive charts
+ */
+
+// Initialize Chart.js with global defaults
+if (typeof Chart !== 'undefined') {
+  Chart.defaults.font.family = "'Inter', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";
+  Chart.defaults.color = '#6c757d';
+  Chart.defaults.responsive = true;
+  Chart.defaults.maintainAspectRatio = false;
+}
+
+/**
+ * Creates an advanced compliance status sunburst chart
+ * @param {HTMLCanvasElement} canvasElement - The canvas element
+ * @param {Object} data - The chart data
+ * @returns {Chart} - The created chart
+ */
+function createComplianceSunburstChart(canvasElement, data) {
+  const ctx = canvasElement.getContext('2d');
+  
+  // Define color scheme
+  const colorMap = {
+    'Critical': '#dc3545',
+    'Warning': '#fd7e14',
+    'Normal': '#0dcaf0',
+    'Good': '#20c997'
+  };
+  
+  // Process data for sunburst format
+  const labels = Object.keys(data);
+  const values = Object.values(data);
+  const total = values.reduce((a, b) => a + b, 0);
+  
+  // Create parent and children data
+  const rootData = {
+    name: 'Compliance',
+    value: total,
+    children: labels.map((label, i) => ({
+      name: label,
+      value: values[i],
+      color: colorMap[label] || '#6c757d'
+    }))
+  };
+  
+  // Process hierarchical data for sunburst
+  function processData(data) {
+    const result = {
+      labels: ['Compliance'],
+      datasets: [{
+        data: [data.value],
+        backgroundColor: ['#4361ee'],
+        hoverBackgroundColor: ['#3a56d4']
+      }]
+    };
+    
+    if (data.children && data.children.length) {
+      data.children.forEach(child => {
+        result.labels.push(child.name);
+        result.datasets[0].data.push(child.value);
+        result.datasets[0].backgroundColor.push(child.color);
+        result.datasets[0].hoverBackgroundColor.push(child.color);
+      });
+    }
+    
+    return result;
+  }
+  
+  const chartData = processData(rootData);
+  
+  // Create the sunburst chart (represented as doughnut with custom options)
+  return new Chart(ctx, {
+    type: 'doughnut',
+    data: chartData,
+    options: {
+      cutout: '40%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            generateLabels: function(chart) {
+              const data = chart.data;
+              if (data.labels.length && data.datasets.length) {
+                return data.labels.map((label, i) => {
+                  const meta = chart.getDatasetMeta(0);
+                  const style = meta.controller.getStyle(i);
+                  const value = chart.data.datasets[0].data[i];
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  
+                  return {
+                    text: `${label} (${percentage}%)`,
+                    fillStyle: data.datasets[0].backgroundColor[i],
+                    strokeStyle: '#fff',
+                    lineWidth: 2,
+                    hidden: isNaN(data.datasets[0].data[i]) || meta.data[i].hidden,
+                    index: i
+                  };
+                });
+              }
+              return [];
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.raw || 0;
+              const percentage = ((value / total) * 100).toFixed(1);
+              return `${label}: ${value} (${percentage}%)`;
+            }
+          }
+        }
+      },
+      animation: {
+        animateRotate: true,
+        animateScale: true
+      }
+    }
+  });
+}
+
+/**
+ * Creates an advanced risk distribution chart
+ * @param {HTMLCanvasElement} canvasElement - The canvas element
+ * @param {Array} riskScores - Array of risk scores
+ * @param {Array} labels - Optional array of labels
+ * @returns {Chart} - The created chart
+ */
+function createAdvancedRiskDistributionChart(canvasElement, riskScores, labels = null) {
+  const ctx = canvasElement.getContext('2d');
+  
+  // Calculate frequency distribution
+  const bins = [0, 20, 40, 60, 80, 100];
+  const binLabels = ['0-20', '21-40', '41-60', '61-80', '81-100'];
+  const binCounts = Array(bins.length - 1).fill(0);
+  
+  riskScores.forEach(score => {
+    for (let i = 0; i < bins.length - 1; i++) {
+      if (score >= bins[i] && score <= bins[i + 1]) {
+        binCounts[i]++;
+        break;
+      }
+    }
+  });
+  
+  // Calculate average risk
+  const avgRisk = riskScores.reduce((a, b) => a + b, 0) / riskScores.length;
+  
+  // Determine risk level
+  let riskLevel = 'Low';
+  let riskGradient = ctx.createLinearGradient(0, 0, 0, 400);
+  
+  if (avgRisk >= 80) {
+    riskLevel = 'Critical';
+    riskGradient.addColorStop(0, 'rgba(220, 53, 69, 0.8)');
+    riskGradient.addColorStop(1, 'rgba(220, 53, 69, 0.2)');
+  } else if (avgRisk >= 60) {
+    riskLevel = 'High';
+    riskGradient.addColorStop(0, 'rgba(253, 126, 20, 0.8)');
+    riskGradient.addColorStop(1, 'rgba(253, 126, 20, 0.2)');
+  } else if (avgRisk >= 40) {
+    riskLevel = 'Medium';
+    riskGradient.addColorStop(0, 'rgba(255, 193, 7, 0.8)');
+    riskGradient.addColorStop(1, 'rgba(255, 193, 7, 0.2)');
+  } else if (avgRisk >= 20) {
+    riskLevel = 'Low';
+    riskGradient.addColorStop(0, 'rgba(32, 201, 151, 0.8)');
+    riskGradient.addColorStop(1, 'rgba(32, 201, 151, 0.2)');
+  } else {
+    riskLevel = 'Minimal';
+    riskGradient.addColorStop(0, 'rgba(13, 202, 240, 0.8)');
+    riskGradient.addColorStop(1, 'rgba(13, 202, 240, 0.2)');
+  }
+  
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: binLabels,
+      datasets: [{
+        label: 'Risk Distribution',
+        data: binCounts,
+        backgroundColor: riskGradient,
+        borderColor: 'rgba(0, 0, 0, 0.1)',
+        borderWidth: 1,
+        borderRadius: 5,
+        barPercentage: 0.8,
+        categoryPercentage: 0.8
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Number of Models/Components'
+          },
+          ticks: {
+            precision: 0
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Risk Score Range'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            title: function(tooltipItems) {
+              return `Risk Level: ${tooltipItems[0].label}`;
+            },
+            label: function(context) {
+              return `Count: ${context.raw}`;
+            },
+            footer: function() {
+              return `Average Risk: ${avgRisk.toFixed(1)} (${riskLevel})`;
+            }
+          }
+        },
+        annotation: {
+          annotations: {
+            line1: {
+              type: 'line',
+              yMin: 0,
+              yMax: Math.max(...binCounts) + 1,
+              xMin: avgRisk / 20 - 0.5,
+              xMax: avgRisk / 20 - 0.5,
+              borderColor: 'rgba(220, 53, 69, 0.8)',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              label: {
+                display: true,
+                content: `Avg: ${avgRisk.toFixed(1)}`,
+                position: 'top'
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Creates an interactive compliance trend chart
+ * @param {HTMLCanvasElement} canvasElement - The canvas element
+ * @param {Array} dates - Array of date strings
+ * @param {Array} values - Array of compliance values
+ * @returns {Chart} - The created chart
+ */
+function createComplianceTrendChart(canvasElement, dates, values) {
+  const ctx = canvasElement.getContext('2d');
+  
+  // Create gradient
+  const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+  gradient.addColorStop(0, 'rgba(67, 97, 238, 0.6)');
+  gradient.addColorStop(1, 'rgba(67, 97, 238, 0.1)');
+  
+  return new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [{
+        label: 'Compliance Rate',
+        data: values,
+        backgroundColor: gradient,
+        borderColor: 'rgba(67, 97, 238, 1)',
+        borderWidth: 2,
+        pointBackgroundColor: 'rgba(67, 97, 238, 1)',
+        pointBorderColor: '#fff',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: false,
+          min: Math.max(0, Math.min(...values) - 10),
+          max: Math.min(100, Math.max(...values) + 10),
+          title: {
+            display: true,
+            text: 'Compliance Rate (%)'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Date'
+          }
+        }
+      },
+      plugins: {
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: function(context) {
+              return `Compliance: ${context.raw}%`;
+            }
+          }
+        },
+        annotation: {
+          annotations: {
+            target: {
+              type: 'line',
+              yMin: 80,
+              yMax: 80,
+              borderColor: 'rgba(32, 201, 151, 0.8)',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              label: {
+                display: true,
+                content: 'Target (80%)',
+                position: 'end'
+              }
+            }
+          }
+        }
+      },
+      interaction: {
+        mode: 'nearest',
+        axis: 'x',
+        intersect: false
+      }
+    }
+  });
+}
+
+// Export functions for use in other files
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    createComplianceSunburstChart,
+    createAdvancedRiskDistributionChart,
+    createComplianceTrendChart
+  };
+}
