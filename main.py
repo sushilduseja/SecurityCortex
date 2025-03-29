@@ -58,16 +58,6 @@ init_db()
 app.mount("/js", StaticFiles(directory="static/js"), name="js")
 app.mount("/css", StaticFiles(directory="static/css"), name="css")
 
-# Catch-all route to serve index.html for all other routes (SPA client-side routing)
-@app.get("/{path:path}")
-async def serve_spa(path: str):
-    # Skip for API routes since they're handled by specific endpoints
-    if path.startswith("api/"):
-        raise HTTPException(status_code=404, detail="API endpoint not found")
-    
-    # For all other routes, serve the SPA's index.html
-    return FileResponse("static/index.html")
-
 # Dashboard metrics
 @app.get("/api/dashboard/metrics", response_model=DashboardMetricsResponse)
 async def get_dashboard_metrics():
@@ -502,6 +492,17 @@ async def api_create_report(report_request: ReportRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Run the application
+# Catch-all route to serve index.html for all non-API routes (SPA client-side routing)
+# This MUST be the last route to ensure API routes are checked first
+@app.get("/{path:path}")
+async def serve_spa(path: str, request: Request):
+    # For all non-API routes, serve the SPA's index.html
+    if not request.url.path.startswith("/api/"):
+        return FileResponse("static/index.html")
+    
+    # API routes that aren't handled by specific endpoints will return a 404
+    raise HTTPException(status_code=404, detail="API endpoint not found")
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
