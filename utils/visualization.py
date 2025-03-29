@@ -117,7 +117,7 @@ class Visualizations:
     @staticmethod
     def create_compliance_status_pie(status_counts: Dict[str, int]) -> go.Figure:
         """
-        Create a pie chart showing the distribution of compliance statuses.
+        Create an enhanced donut chart showing compliance status distribution.
         
         Args:
             status_counts: Dictionary mapping status names to counts
@@ -125,28 +125,44 @@ class Visualizations:
         Returns:
             A Plotly figure object
         """
-        # Create lists for labels and values
         labels = list(status_counts.keys())
         values = list(status_counts.values())
         
-        # Define colors for different statuses
         colors = {
-            'Critical': '#d9534f',
-            'Warning': '#f0ad4e',
-            'Normal': '#5bc0de',
-            'Good': '#5cb85c'
+            'Critical': '#ff4d4d',
+            'Warning': '#ffa64d',
+            'Normal': '#4d94ff',
+            'Good': '#66cc66'
         }
         
-        # Get colors based on labels
+        total = sum(values)
         color_list = [colors.get(label, '#777777') for label in labels]
         
-        # Create the pie chart
         fig = go.Figure(data=[go.Pie(
             labels=labels,
             values=values,
-            hole=.4,
-            marker_colors=color_list
+            hole=.7,
+            marker=dict(
+                colors=color_list,
+                line=dict(color='#ffffff', width=2)
+            ),
+            textinfo='label+percent',
+            textposition='outside',
+            textfont=dict(size=14),
+            hovertemplate="<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>"
         )])
+        
+        fig.update_layout(
+            showlegend=False,
+            annotations=[{
+                'text': f'Total<br>{total}',
+                'x': 0.5,
+                'y': 0.5,
+                'font_size': 20,
+                'showarrow': False
+            }],
+            margin=dict(t=30, l=30, r=30, b=30)
+        )
         
         # Update layout
         fig.update_layout(
@@ -159,7 +175,7 @@ class Visualizations:
     @staticmethod
     def create_policy_category_bar(categories: Dict[str, int]) -> go.Figure:
         """
-        Create a bar chart showing the number of policies by category.
+        Create an enhanced bar chart showing policies by category.
         
         Args:
             categories: Dictionary mapping category names to counts
@@ -167,25 +183,42 @@ class Visualizations:
         Returns:
             A Plotly figure object
         """
-        # Sort categories by count in descending order
         sorted_categories = sorted(categories.items(), key=lambda x: x[1], reverse=True)
-        
-        # Create lists for labels and values
         labels = [item[0] for item in sorted_categories]
         values = [item[1] for item in sorted_categories]
         
-        # Create the bar chart
-        fig = go.Figure(data=[go.Bar(
-            x=labels,
-            y=values,
-            marker_color='#007bff'
-        )])
+        fig = go.Figure(data=[
+            go.Bar(
+                x=labels,
+                y=values,
+                marker=dict(
+                    color='#4d94ff',
+                    line=dict(color='#ffffff', width=1.5)
+                ),
+                hovertemplate="<b>%{x}</b><br>Count: %{y}<extra></extra>",
+                textposition='auto',
+                texttemplate='%{y}',
+                textfont=dict(size=14)
+            )
+        ])
         
-        # Update layout
         fig.update_layout(
-            title_text="Policies by Category",
-            xaxis_title="Category",
-            yaxis_title="Number of Policies"
+            title=dict(
+                text="Policies by Category",
+                font=dict(size=18),
+                y=0.95
+            ),
+            xaxis=dict(
+                title="Category",
+                tickangle=-45,
+                tickfont=dict(size=12)
+            ),
+            yaxis=dict(
+                title="Number of Policies",
+                gridcolor='#f0f0f0'
+            ),
+            plot_bgcolor='white',
+            margin=dict(t=60, l=50, r=30, b=100)
         )
         
         return fig
