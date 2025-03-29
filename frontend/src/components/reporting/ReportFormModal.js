@@ -10,19 +10,23 @@ const ReportFormModal = ({ show, onClose, onReportCreated }) => {
   // Report types aligned with backend ReportingAgent
   const reportTypes = [
     {
-      type: "Governance Summary",
+      type: "governance_summary",
+      title: "Governance Summary",
       description: "Summary of AI governance policies and their status"
     },
     {
-      type: "Risk Assessment Overview",
+      type: "risk_assessment_overview",
+      title: "Risk Assessment Overview",
       description: "Overview of AI risk assessments and key findings"
     },
     {
-      type: "Compliance Status",
+      type: "compliance_status",
+      title: "Compliance Status",
       description: "Current status of compliance monitoring across AI systems"
     },
     {
-      type: "Comprehensive Governance Report",
+      type: "comprehensive_report",
+      title: "Comprehensive Governance Report",
       description: "A comprehensive report covering all governance aspects"
     }
   ];
@@ -91,7 +95,7 @@ const ReportFormModal = ({ show, onClose, onReportCreated }) => {
             required
           >
             {reportTypes.map(rt => (
-              <option key={rt.type} value={rt.type}>{rt.type}</option>
+              <option key={rt.type} value={rt.type}>{rt.title}</option>
             ))}
           </select>
           {reportType && (

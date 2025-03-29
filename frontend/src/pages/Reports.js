@@ -7,11 +7,30 @@ import ReportFormModal from '../components/reporting/ReportFormModal';
 import ReportDetailModal from '../components/reporting/ReportDetailModal';
 import ReportCard from '../components/reporting/ReportCard';
 
-// Format the report type to be more readable
+// Maps report types to their display titles for consistent naming
+const reportTypeTitles = {
+  "governance_summary": "Governance Summary",
+  "risk_assessment_overview": "Risk Assessment Overview",
+  "compliance_status": "Compliance Status",
+  "comprehensive_report": "Comprehensive Governance Report",
+  // For backward compatibility, also handle any old/irregular values
+  "Governance Summary": "Governance Summary",
+  "Risk Assessment Overview": "Risk Assessment Overview",
+  "Compliance Status": "Compliance Status",
+  "Comprehensive Governance Report": "Comprehensive Governance Report",
+  "comprehensive_governance_report": "Comprehensive Governance Report"
+};
+
+// Format the report type to be more readable with consistent naming
 const formatReportType = (type) => {
   if (!type) return '';
   
-  // Convert from snake_case or camelCase to Title Case with spaces
+  // First check if we have a direct mapping
+  if (reportTypeTitles[type]) {
+    return reportTypeTitles[type];
+  }
+  
+  // Otherwise fallback to transform from snake_case or camelCase to Title Case with spaces
   return type
     .replace(/_/g, ' ')  // Replace underscores with spaces
     .replace(/([A-Z])/g, ' $1')  // Add space before capital letters
@@ -141,21 +160,32 @@ const Reports = () => {
           </div>
 
           <div className="card border-0 shadow-sm">
-            <div className="card-header bg-white py-3 border-0">
+            <div className="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
               <h5 className="mb-0">
                 <i className="fas fa-file-alt me-2 text-primary"></i>
                 Available Reports
               </h5>
+              <div className="input-group" style={{width: "280px"}}>
+                <span className="input-group-text bg-light border-end-0">
+                  <i className="fas fa-search text-muted"></i>
+                </span>
+                <input 
+                  type="text" 
+                  className="form-control border-start-0 bg-light" 
+                  placeholder="Search reports..." 
+                  aria-label="Search reports"
+                />
+              </div>
             </div>
             <div className="table-container">
-              <table className="data-table">
-                <thead>
+              <table className="table table-hover">
+                <thead className="table-light">
                   <tr>
-                    <th>Title</th>
+                    <th className="ps-4">Title</th>
                     <th>Report Type</th>
                     <th>Created</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th className="text-end pe-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -164,33 +194,42 @@ const Reports = () => {
                       <td colSpan={5} className="text-center py-4">No reports found</td>
                     </tr>
                   ) : (
-                    reports.map((report) => (
-                      <tr key={report.id}>
-                        <td>{report.title}</td>
-                        <td>{formatReportType(report.report_type)}</td>
-                        <td>{new Date(report.created_at).toLocaleDateString()}</td>
-                        <td>
-                          <StatusBadge status={report.status} />
-                        </td>
-                        <td>
-                          <div className="d-flex gap-2">
-                            <button 
-                              className="btn btn-sm btn-light" 
-                              title="View Report"
-                              onClick={() => handleViewReport(report.id)}
-                            >
-                              <i className="fas fa-eye"></i>
-                            </button>
-                            <button className="btn btn-sm btn-light" title="Download">
-                              <i className="fas fa-download"></i>
-                            </button>
-                            <button className="btn btn-sm btn-light" title="Share">
-                              <i className="fas fa-share-alt"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                    reports.map((report) => {
+                      // Generate a descriptive title if one is missing
+                      const reportTitle = report.title || formatReportType(report.report_type) || "Untitled Report";
+                      return (
+                        <tr key={report.id}>
+                          <td className="ps-4">
+                            <div className="fw-bold">{reportTitle}</div>
+                            {report.description && (
+                              <div className="text-muted small">{report.description}</div>
+                            )}
+                          </td>
+                          <td>{formatReportType(report.report_type)}</td>
+                          <td>{new Date(report.created_at).toLocaleDateString()}</td>
+                          <td>
+                            <StatusBadge status={report.status} />
+                          </td>
+                          <td className="text-end pe-4">
+                            <div className="d-flex gap-2 justify-content-end">
+                              <button 
+                                className="btn btn-sm btn-outline-primary" 
+                                title="View Report"
+                                onClick={() => handleViewReport(report.id)}
+                              >
+                                <i className="fas fa-eye"></i>
+                              </button>
+                              <button className="btn btn-sm btn-outline-secondary" title="Download">
+                                <i className="fas fa-download"></i>
+                              </button>
+                              <button className="btn btn-sm btn-outline-info" title="Share">
+                                <i className="fas fa-share-alt"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>

@@ -34,11 +34,30 @@ const getReportTypeColor = (type) => {
   }
 };
 
+// Maps report types to their display titles
+const reportTypeTitles = {
+  "governance_summary": "Governance Summary",
+  "risk_assessment_overview": "Risk Assessment Overview",
+  "compliance_status": "Compliance Status",
+  "comprehensive_report": "Comprehensive Governance Report",
+  // For backward compatibility, also handle any old/irregular values
+  "Governance Summary": "Governance Summary",
+  "Risk Assessment Overview": "Risk Assessment Overview",
+  "Compliance Status": "Compliance Status",
+  "Comprehensive Governance Report": "Comprehensive Governance Report",
+  "comprehensive_governance_report": "Comprehensive Governance Report"
+};
+
 // Format the report type to be more readable
 const formatReportType = (type) => {
   if (!type) return '';
   
-  // Convert from snake_case or camelCase to Title Case with spaces
+  // First check if we have a direct mapping
+  if (reportTypeTitles[type]) {
+    return reportTypeTitles[type];
+  }
+  
+  // Otherwise fallback to transform from snake_case or camelCase to Title Case with spaces
   return type
     .replace(/_/g, ' ')  // Replace underscores with spaces
     .replace(/([A-Z])/g, ' $1')  // Add space before capital letters
