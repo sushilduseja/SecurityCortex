@@ -371,13 +371,512 @@ if (typeof Chart !== 'undefined') {
   Chart.defaults.maintainAspectRatio = false;
 }
 
+
+// Enhanced Chart Utilities
+
+// Initialize or update compliance status chart
+function initComplianceStatusChart(elementId, data) {
+  const ctx = document.getElementById(elementId).getContext('2d');
+
+  // Destroy any existing chart
+  if (window.charts && window.charts[elementId]) {
+    window.charts[elementId].destroy();
+  }
+
+  // Create a more visually appealing donut chart
+  const chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        data: data.datasets[0].data,
+        backgroundColor: data.datasets[0].backgroundColor || [
+          'rgba(76, 175, 80, 0.8)',  // Green - Good
+          'rgba(91, 192, 222, 0.8)',  // Blue - Normal
+          'rgba(240, 173, 78, 0.8)',  // Orange - Warning
+          'rgba(217, 83, 79, 0.8)'    // Red - Critical
+        ],
+        borderColor: 'rgba(255, 255, 255, 0.8)',
+        borderWidth: 2,
+        hoverOffset: 10
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 20,
+            font: {
+              size: 12
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.raw || 0;
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((value / total) * 100);
+              return `${label}: ${value} (${percentage}%)`;
+            }
+          }
+        },
+        datalabels: {
+          color: '#fff',
+          font: {
+            weight: 'bold'
+          },
+          formatter: (value, ctx) => {
+            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = Math.round((value / total) * 100);
+            return percentage + '%';
+          }
+        }
+      },
+      animation: {
+        animateScale: true,
+        animateRotate: true
+      }
+    }
+  });
+
+  // Store chart reference
+  if (!window.charts) window.charts = {};
+  window.charts[elementId] = chart;
+
+  return chart;
+}
+
+// Initialize or update risk distribution chart (radar chart)
+function initRiskDistributionChart(elementId, data) {
+  const ctx = document.getElementById(elementId).getContext('2d');
+
+  // Destroy any existing chart
+  if (window.charts && window.charts[elementId]) {
+    window.charts[elementId].destroy();
+  }
+
+  // Create a more advanced radar chart for risk distribution
+  const chart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: data.labels,
+      datasets: data.datasets.map(dataset => ({
+        ...dataset,
+        borderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: dataset.borderColor,
+        lineTension: 0.2
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          angleLines: {
+            color: 'rgba(210, 210, 210, 0.3)'
+          },
+          grid: {
+            color: 'rgba(210, 210, 210, 0.3)'
+          },
+          pointLabels: {
+            font: {
+              size: 12
+            }
+          },
+          suggestedMin: 0,
+          suggestedMax: 1,
+          ticks: {
+            stepSize: 0.2,
+            callback: function(value) {
+              return value.toFixed(1);
+            }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 20,
+            font: {
+              size: 12
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.dataset.label || '';
+              const value = context.raw.toFixed(2);
+              return `${label}: ${value}`;
+            }
+          }
+        }
+      },
+      animation: {
+        duration: 1500,
+        easing: 'easeOutQuart'
+      }
+    }
+  });
+
+  // Store chart reference
+  if (!window.charts) window.charts = {};
+  window.charts[elementId] = chart;
+
+  return chart;
+}
+
+// Initialize interactive heatmap for risk scores
+function initRiskHeatmap(elementId, data) {
+  const ctx = document.getElementById(elementId).getContext('2d');
+
+  // Destroy any existing chart
+  if (window.charts && window.charts[elementId]) {
+    window.charts[elementId].destroy();
+  }
+
+  // Prepare data for heatmap
+  const heatmapData = data.map((row, i) => ({
+    x: i,
+    y: row.category,
+    v: row.score
+  }));
+
+  // Create heatmap
+  const chart = new Chart(ctx, {
+    type: 'matrix',
+    data: {
+      datasets: [{
+        data: heatmapData,
+        backgroundColor(context) {
+          const value = context.dataset.data[context.dataIndex].v;
+          // Red gradient for risk scores (higher is more intense red)
+          const alpha = 0.2 + (value * 0.8);
+          return `rgba(220, 53, 69, ${alpha})`;
+        },
+        borderColor: 'rgba(255, 255, 255, 0.4)',
+        borderWidth: 1,
+        width: ({ chart }) => (chart.chartArea.width / 5) - 4,
+        height: ({ chart }) => (chart.chartArea.height / data.length) - 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        tooltip: {
+          callbacks: {
+            title() {
+              return '';
+            },
+            label(context) {
+              const v = context.dataset.data[context.dataIndex];
+              return [`Category: ${v.y}`, `Risk Score: ${v.v.toFixed(2)}`];
+            }
+          }
+        },
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        x: {
+          display: false
+        },
+        y: {
+          ticks: {
+            callback: function(index) {
+              return data[index].category;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Store chart reference
+  if (!window.charts) window.charts = {};
+  window.charts[elementId] = chart;
+
+  return chart;
+}
+
+// Create an advanced timeline chart for compliance history
+function initComplianceTimelineChart(elementId, timelineData) {
+  const ctx = document.getElementById(elementId).getContext('2d');
+
+  // Destroy any existing chart
+  if (window.charts && window.charts[elementId]) {
+    window.charts[elementId].destroy();
+  }
+
+  // Parse dates and sort by date
+  const sortedData = [...timelineData].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const dates = sortedData.map(item => item.date);
+  const values = sortedData.map(item => item.value);
+  const annotations = sortedData.filter(item => item.event).map(item => ({
+    type: 'point',
+    xValue: item.date,
+    yValue: item.value,
+    backgroundColor: 'rgba(255, 99, 132, 0.8)',
+    borderColor: 'rgba(255, 99, 132, 1)',
+    borderWidth: 2,
+    radius: 6,
+    label: {
+      content: item.event,
+      enabled: true,
+      position: 'top'
+    }
+  }));
+
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [{
+        label: 'Compliance Rate',
+        data: values,
+        borderColor: 'rgba(67, 97, 238, 1)',
+        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        annotation: {
+          annotations: annotations
+        },
+        legend: {
+          position: 'top'
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Date'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Compliance Rate (%)'
+          },
+          min: Math.max(0, Math.min(...values) - 10),
+          max: Math.min(100, Math.max(...values) + 10)
+        }
+      }
+    }
+  });
+
+  // Store chart reference
+  if (!window.charts) window.charts = {};
+  window.charts[elementId] = chart;
+
+  return chart;
+}
+
+// Create a trend chart to show changes over time
+function initTrendChart(elementId, data) {
+  const ctx = document.getElementById(elementId).getContext('2d');
+
+  // Destroy any existing chart
+  if (window.charts && window.charts[elementId]) {
+    window.charts[elementId].destroy();
+  }
+
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: data.datasets.map(dataset => ({
+        ...dataset,
+        tension: 0.4,
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          position: 'top'
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Time Period'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Value'
+          }
+        }
+      }
+    }
+  });
+
+  // Store chart reference
+  if (!window.charts) window.charts = {};
+  window.charts[elementId] = chart;
+
+  return chart;
+}
+
+// Create an animated bubble chart for risk vs impact assessment
+function initRiskImpactChart(elementId, data) {
+  const ctx = document.getElementById(elementId).getContext('2d');
+
+  // Destroy any existing chart
+  if (window.charts && window.charts[elementId]) {
+    window.charts[elementId].destroy();
+  }
+
+  const chart = new Chart(ctx, {
+    type: 'bubble',
+    data: {
+      datasets: data.datasets.map(dataset => ({
+        ...dataset,
+        borderWidth: 1.5
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top'
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.dataset.label || '';
+              const risk = context.raw.x.toFixed(2);
+              const impact = context.raw.y.toFixed(2);
+              const size = context.raw.r.toFixed(2);
+              return [`${label}`, `Risk: ${risk}`, `Impact: ${impact}`, `Priority: ${size}`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Risk Level'
+          },
+          suggestedMin: 0,
+          suggestedMax: 1
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Business Impact'
+          },
+          suggestedMin: 0,
+          suggestedMax: 1
+        }
+      }
+    }
+  });
+
+  // Store chart reference
+  if (!window.charts) window.charts = {};
+  window.charts[elementId] = chart;
+
+  return chart;
+}
+
+// Generate gradient for charts
+function getGradient(ctx, chartArea, startColor, endColor) {
+  const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+  gradient.addColorStop(0, startColor);
+  gradient.addColorStop(1, endColor);
+  return gradient;
+}
+
+// Fixed version of loading and rendering charts that doesn't depend on GSAP animations
+function renderDashboardCharts() {
+  // Load compliance status data
+  fetch('/api/dashboard/compliance-status-chart')
+    .then(response => response.json())
+    .then(data => {
+      if (document.getElementById('compliance-status-chart')) {
+        initComplianceStatusChart('compliance-status-chart', data);
+      }
+    })
+    .catch(error => console.error('Error loading compliance status chart:', error));
+
+  // Load risk distribution data
+  fetch('/api/dashboard/risk-distribution-chart')
+    .then(response => response.json())
+    .then(data => {
+      if (document.getElementById('risk-distribution-chart')) {
+        initRiskDistributionChart('risk-distribution-chart', data);
+      }
+    })
+    .catch(error => console.error('Error loading risk distribution chart:', error));
+}
+
+// Make sure charts are rendered when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize dashboard charts if we're on the dashboard page
+  if (document.querySelector('.dashboard-container') || 
+      document.getElementById('compliance-status-chart') || 
+      document.getElementById('risk-distribution-chart')) {
+    renderDashboardCharts();
+  }
+});
+
+// Export the chart functions
+window.chartUtils = {
+  initComplianceStatusChart,
+  initRiskDistributionChart,
+  initRiskHeatmap,
+  initComplianceTimelineChart,
+  initTrendChart,
+  initRiskImpactChart,
+  renderDashboardCharts
+};
+
 /**
  * Creates an advanced compliance status sunburst chart
  * @param {HTMLCanvasElement} canvasElement - The canvas element
  * @param {Object} data - The chart data
  * @returns {Chart} - The created chart
  */
-function createComplianceSunburstChart(canvasElement, data) {
+/*function createComplianceSunburstChart(canvasElement, data) {
   const ctx = canvasElement.getContext('2d');
   
   // Define color scheme
@@ -479,7 +978,7 @@ function createComplianceSunburstChart(canvasElement, data) {
       }
     }
   });
-}
+}*/
 
 /**
  * Creates an advanced risk distribution chart
@@ -488,7 +987,7 @@ function createComplianceSunburstChart(canvasElement, data) {
  * @param {Array} labels - Optional array of labels
  * @returns {Chart} - The created chart
  */
-function createAdvancedRiskDistributionChart(canvasElement, riskScores, labels = null) {
+/*function createAdvancedRiskDistributionChart(canvasElement, riskScores, labels = null) {
   const ctx = canvasElement.getContext('2d');
   
   // Calculate frequency distribution
@@ -616,7 +1115,7 @@ function createAdvancedRiskDistributionChart(canvasElement, riskScores, labels =
  * @param {Array} values - Array of compliance values
  * @returns {Chart} - The created chart
  */
-function createComplianceTrendChart(canvasElement, dates, values) {
+/*function createComplianceTrendChart(canvasElement, dates, values) {
   const ctx = canvasElement.getContext('2d');
   
   // Create gradient
@@ -695,14 +1194,17 @@ function createComplianceTrendChart(canvasElement, dates, values) {
       }
     }
   });
-}
+}*/
 
 // Export functions for use in other files
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    createComplianceSunburstChart,
-    createAdvancedRiskDistributionChart,
-    createComplianceTrendChart
+    initComplianceStatusChart,
+    initRiskDistributionChart,
+    initRiskHeatmap,
+    initComplianceTimelineChart,
+    initTrendChart,
+    initRiskImpactChart
   };
 }
 
@@ -711,7 +1213,7 @@ if (typeof module !== 'undefined' && module.exports) {
 import plotly from 'plotly.js-dist';
 
 // Initialize and render advanced charts
-export function initCharts() {
+/*export function initCharts() {
   // This function will be called when the page loads
   console.log('Initializing advanced charts');
 
@@ -725,7 +1227,7 @@ export function initCharts() {
 export function renderAdvancedCharts() {
   // This will be called after the DOM is fully loaded
   console.log('Rendering advanced charts');
-}
+}*/
 
 // Export chart configuration utilities
 export const chartConfig = {

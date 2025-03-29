@@ -248,16 +248,19 @@ with tab1:
             normal_data = [4, 3, 2, 5, 3, 2]
             good_data = [1, 2, 3, 3, 5, 7]
 
-            # Create the figure
+            # Create an enhanced horizontal stacked bar chart with better visuals
             fig2 = go.Figure()
 
-            # Add stacked bars
+            # Add stacked bars with improved styling
             fig2.add_trace(go.Bar(
                 y=monitoring_categories,
                 x=good_data,
                 name='Good',
                 orientation='h',
-                marker=dict(color='#5cb85c'),
+                marker=dict(
+                    color='rgba(92, 184, 92, 0.85)',
+                    line=dict(color='rgba(92, 184, 92, 1.0)', width=1)
+                ),
                 hovertemplate="<b>%{y}</b><br>Good: %{x}<extra></extra>"
             ))
 
@@ -266,7 +269,10 @@ with tab1:
                 x=normal_data,
                 name='Normal',
                 orientation='h',
-                marker=dict(color='#5bc0de'),
+                marker=dict(
+                    color='rgba(91, 192, 222, 0.85)',
+                    line=dict(color='rgba(91, 192, 222, 1.0)', width=1)
+                ),
                 hovertemplate="<b>%{y}</b><br>Normal: %{x}<extra></extra>"
             ))
 
@@ -275,7 +281,10 @@ with tab1:
                 x=warning_data,
                 name='Warning',
                 orientation='h',
-                marker=dict(color='#f0ad4e'),
+                marker=dict(
+                    color='rgba(240, 173, 78, 0.85)',
+                    line=dict(color='rgba(240, 173, 78, 1.0)', width=1)
+                ),
                 hovertemplate="<b>%{y}</b><br>Warning: %{x}<extra></extra>"
             ))
 
@@ -284,11 +293,14 @@ with tab1:
                 x=critical_data,
                 name='Critical',
                 orientation='h',
-                marker=dict(color='#d9534f'),
+                marker=dict(
+                    color='rgba(217, 83, 79, 0.85)',
+                    line=dict(color='rgba(217, 83, 79, 1.0)', width=1)
+                ),
                 hovertemplate="<b>%{y}</b><br>Critical: %{x}<extra></extra>"
             ))
 
-            # Update layout
+            # Update layout with improved styling
             fig2.update_layout(
                 barmode='stack',
                 title={
@@ -297,19 +309,48 @@ with tab1:
                     'x': 0.5,
                     'xanchor': 'center',
                     'yanchor': 'top',
-                    'font': {'size': 16}
+                    'font': {'size': 16, 'family': 'Arial', 'color': '#333'}
                 },
                 legend=dict(
                     orientation="h",
                     yanchor="bottom",
                     y=1.02,
                     xanchor="center",
-                    x=0.5
+                    x=0.5,
+                    bgcolor='rgba(255, 255, 255, 0.8)',
+                    bordercolor='rgba(0, 0, 0, 0.1)',
+                    borderwidth=1
                 ),
-                xaxis_title="Number of Monitors",
+                xaxis=dict(
+                    title="Number of Monitors",
+                    titlefont=dict(size=14, family='Arial', color='#666'),
+                    showgrid=True,
+                    gridcolor='rgba(211, 211, 211, 0.3)',
+                    zeroline=True,
+                    zerolinecolor='rgba(211, 211, 211, 0.7)',
+                    zerolinewidth=1
+                ),
+                yaxis=dict(
+                    titlefont=dict(size=14, family='Arial', color='#666'),
+                    automargin=True
+                ),
                 margin=dict(l=20, r=20, t=60, b=20),
-                height=350
+                height=350,
+                paper_bgcolor='rgba(0, 0, 0, 0)',
+                plot_bgcolor='rgba(0, 0, 0, 0)',
+                hoverlabel=dict(
+                    bgcolor='white',
+                    font_size=12,
+                    font_family='Arial'
+                )
             )
+
+            # Add a subtle grid pattern
+            fig2.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(211, 211, 211, 0.3)')
+
+            # Improve the appearance with rounded corners for bars
+            for i in range(len(fig2.data)):
+                fig2.data[i].marker.line.width = 1
 
             st.plotly_chart(fig2, use_container_width=True)
 
