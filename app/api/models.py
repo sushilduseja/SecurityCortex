@@ -50,7 +50,9 @@ class ComplianceMonitorRequest(BaseModel):
     status: str = "Active"
     alert_level: str = "Normal"
 
-class ComplianceMonitorResponse(BaseResponse):
+# Special compliance monitor response that doesn't require created_at
+class ComplianceMonitorResponse(BaseModel):
+    id: int
     name: str
     description: str
     model_or_system: str
@@ -59,6 +61,7 @@ class ComplianceMonitorResponse(BaseResponse):
     status: str
     last_checked: datetime
     alert_level: str
+    created_at: Optional[datetime] = None
 
 # Report Models
 class ReportRequest(BaseModel):
