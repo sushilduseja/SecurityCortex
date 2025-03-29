@@ -10,8 +10,35 @@ import plotly.graph_objects as go
 st.set_page_config(
     page_title="Compliance Monitoring | AI Governance Dashboard",
     page_icon="📊",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
+
+# Custom CSS
+st.markdown("""
+<style>
+div.stTabs button {
+    transition: all 0.2s;
+    padding: 12px 24px;
+    margin-right: 8px;
+    border-radius: 8px;
+}
+div.stTabs button:hover {
+    background: rgba(67, 97, 238, 0.05);
+    color: #4361ee;
+}
+div.stTabs button[aria-selected="true"] {
+    background: #4361ee !important;
+    color: white !important;
+}
+div[data-testid="stMetricValue"] {
+    font-size: 28px;
+}
+div.stTabs [role="tablist"] {
+    gap: 8px;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # API endpoints
 API_URL = "http://localhost:8000"
@@ -52,8 +79,19 @@ def load_compliance_summary():
 monitors = load_compliance_monitors()
 compliance_summary = load_compliance_summary()
 
-# Create tabs for different monitoring functions
-tab1, tab2, tab3, tab4 = st.tabs(["Dashboard", "Monitors", "Create Monitor", "Simulation"])
+# Add loading placeholder
+with st.spinner("Loading dashboard..."):
+    # Create tabs with improved styling
+    tab1, tab2, tab3, tab4 = st.tabs(["Dashboard", "Monitors", "Create Monitor", "Simulation"])
+    
+    # Preload data for other tabs
+    @st.cache_data(ttl=30)
+    def preload_tab_data():
+        monitors = load_compliance_monitors()
+        summary = load_compliance_summary()
+        return monitors, summary
+    
+    monitors_data, summary_data = preload_tab_data()
 
 with tab1:
     st.header("Compliance Dashboard")

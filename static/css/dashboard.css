@@ -1,0 +1,78 @@
+
+/* Modern Dashboard Styles */
+.dashboard-container {
+  padding: 24px;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.metric-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+.dashboard-tabs {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.nav-pills .nav-link {
+  border-radius: 8px;
+  padding: 12px 24px;
+  color: #6c757d;
+  transition: all 0.2s;
+}
+
+.nav-pills .nav-link.active {
+  background: #4361ee;
+  color: white;
+}
+
+.nav-pills .nav-link:not(.active):hover {
+  background: rgba(67, 97, 238, 0.05);
+}
+
+.tab-content {
+  position: relative;
+  min-height: 400px;
+}
+
+.tab-pane {
+  transition: opacity 0.2s;
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+}
+
+.tab-pane.active {
+  opacity: 1;
+  position: relative;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
