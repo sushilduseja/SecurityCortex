@@ -140,6 +140,12 @@ async def get_compliance_status_chart():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Alias for backward compatibility with legacy frontend code
+@app.get("/api/charts/compliance-status", response_model=ChartDataResponse)
+async def get_compliance_status_chart_legacy():
+    """Legacy endpoint for compliance status chart"""
+    return await get_compliance_status_chart()
+
 # Risk Distribution Chart data
 @app.get("/api/dashboard/risk-distribution-chart", response_model=ChartDataResponse)
 async def get_risk_distribution_chart():
@@ -181,6 +187,12 @@ async def get_risk_distribution_chart():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Alias for backward compatibility with legacy frontend code
+@app.get("/api/charts/risk-distribution", response_model=ChartDataResponse)
+async def get_risk_distribution_chart_legacy():
+    """Legacy endpoint for risk distribution chart"""
+    return await get_risk_distribution_chart()
+
 # Recent Activities
 @app.get("/api/dashboard/activities", response_model=List[ActivityResponse])
 async def get_activities():
@@ -190,6 +202,12 @@ async def get_activities():
         return activities
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Alias for backward compatibility with legacy frontend code
+@app.get("/api/activities/recent", response_model=List[ActivityResponse])
+async def get_activities_legacy():
+    """Legacy endpoint for recent activities"""
+    return await get_activities()
 
 # Policies endpoints
 @app.get("/api/policies", response_model=List[PolicyResponse])
