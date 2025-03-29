@@ -87,8 +87,7 @@ const ComplianceStatusChart = () => {
   useEffect(() => {
     const getModelsList = async () => {
       try {
-        const response = await fetchComplianceMonitors();
-        const monitorsData = response.data || [];
+        const monitorsData = await fetchComplianceMonitors();
         
         // Extract unique model/system names
         const uniqueModels = ['All', ...new Set(monitorsData.map(m => m.model_or_system))];
@@ -110,8 +109,7 @@ const ComplianceStatusChart = () => {
         const data = response.data || response;
         
         // Get compliance monitors for detail view
-        const monitorsResponse = await fetchComplianceMonitors();
-        const monitorsData = monitorsResponse.data || [];
+        const monitorsData = await fetchComplianceMonitors();
         
         // Filter monitors based on selected model if not 'All'
         const filteredMonitors = selectedModel === 'All' 

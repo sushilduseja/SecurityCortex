@@ -44,20 +44,39 @@ const RiskDistributionChart = () => {
         setIsLoading(true);
         
         // Fetch risk distribution data
-        const response = await fetchRiskDistributionChart();
-        const data = response.data || response;
+        const data = await fetchRiskDistributionChart();
         
         // Fetch all risk assessments for detailed views
-        const assessmentsResponse = await fetchRiskAssessments();
-        setRiskAssessments(assessmentsResponse);
+        const assessments = await fetchRiskAssessments();
+        setRiskAssessments(assessments);
+        
+        // For risk categories, we'll use the data from the API differently
+        // The API returns a different format than expected in our UI
+        // We'll transform the radar format into a bar chart format
+        
+        // Let's derive risk levels from assessments for a bar chart
+        const riskLevels = ["High", "Medium-High", "Medium", "Medium-Low", "Low"];
+        
+        // Count assessments by risk level
+        const riskLevelCounts = riskLevels.map(level => {
+          const count = assessments.filter(assessment => {
+            const score = assessment.risk_score;
+            if (level === "High") return score >= 80;
+            if (level === "Medium-High") return score >= 60 && score < 80;
+            if (level === "Medium") return score >= 40 && score < 60;
+            if (level === "Medium-Low") return score >= 20 && score < 40;
+            return score < 20; // Low
+          }).length;
+          return count;
+        });
         
         // Enhanced color gradient based on risk level
-        const colors = data.labels.map(label => {
-          if (label.toLowerCase().includes('high')) {
+        const colors = riskLevels.map(level => {
+          if (level.toLowerCase().includes('high')) {
             return 'rgba(231, 76, 60, 0.85)'; // Red for high risk
-          } else if (label.toLowerCase().includes('medium')) {
+          } else if (level.toLowerCase().includes('medium')) {
             return 'rgba(241, 196, 15, 0.85)'; // Yellow for medium risk
-          } else if (label.toLowerCase().includes('low')) {
+          } else if (level.toLowerCase().includes('low')) {
             return 'rgba(46, 204, 113, 0.85)'; // Green for low risk
           } else {
             return 'rgba(52, 152, 219, 0.85)'; // Blue for other
@@ -68,11 +87,11 @@ const RiskDistributionChart = () => {
         
         // Bar Chart Data
         const barData = {
-          labels: data.labels,
+          labels: riskLevels,
           datasets: [
             {
               label: 'Risk Count',
-              data: data.values,
+              data: riskLevelCounts,
               backgroundColor: colors,
               borderColor: borderColors,
               borderWidth: 2,
@@ -88,7 +107,7 @@ const RiskDistributionChart = () => {
         // Radar Chart Data
         // Group assessments by risk level
         const groupedAssessments = {};
-        assessmentsResponse.forEach(assessment => {
+        assessments.forEach(assessment => {
           const score = assessment.risk_score;
           let riskLevel;
           if (score >= 80) riskLevel = 'High';
