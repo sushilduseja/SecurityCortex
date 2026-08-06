@@ -1,0 +1,18 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pip-audit:
+    name: Dependency audit (pip-audit --strict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Export locked requirements
+        run: uv export --no-dev --no-hashes --output-file requirements-audit.txt
+      - name: Audit dependencies
+        run: uvx pip-audit --strict -r requirements-audit.txt
